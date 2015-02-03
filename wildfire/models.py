@@ -1,16 +1,11 @@
 from django.db import models
 
+GENDER_CHOICES = (('M', 'Male'), ('F', 'Female'),)
 # Create your models here.
 class User(models.Model):
-	id = models.IntegerField(primary_key = True)
 	username = models.CharField(max_length = 20)
 	password = models.CharField(max_length = 20)
 	age = models.IntegerField()
-	# we should look at this.  Gender true or false?
-	GENDER_CHOICES = (
-        ('M', 'Male'),
-        ('F', 'Female'),
-    )
 	gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
 	region = models.CharField(max_length = 20)
 	join_date = models.DateTimeField()
