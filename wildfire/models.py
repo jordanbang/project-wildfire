@@ -23,22 +23,22 @@ class Question(models.Model):
 	type = models.CharField(max_length = 20)
 	date = models.DateTimeField()
 	
-class Categories(models.Model):
+class Categorie(models.Model):
 	question = models.ManyToManyField(Question)
 	category = models.CharField(max_length = 20)
 
-class MultipleChoiceOptions(models.Model):
+class MultipleChoiceOption(models.Model):
 	choice1 = models.CharField(max_length = 40)
 	choice2 = models.CharField(max_length = 40)
 	choice3 = models.CharField(max_length = 40)
 	choice4 = models.CharField(max_length = 40)
 	choice5 = models.CharField(max_length = 40)
 
-class RangeOptions(models.Model):
+class RangeOption(models.Model):
 	lower_bound = models.IntegerField(default = 0) 
 	upper_bound = models.IntegerField(default = 100)
 
-class Answers(models.Model):
+class Answer(models.Model):
 	user = models.ForeignKey(User)
 	question = models.ForeignKey(Question)
 	answer = models.IntegerField()
