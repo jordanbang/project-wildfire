@@ -7,7 +7,11 @@ class User(models.Model):
 	password = models.CharField(max_length = 20)
 	age = models.IntegerField()
 	# we should look at this.  Gender true or false?
-	gender = models.BooleanField()
+	GENDER_CHOICES = (
+        ('M', 'Male'),
+        ('F', 'Female'),
+    )
+	gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
 	region = models.CharField(max_length = 20)
 	join_date = models.DateTimeField()
 	
