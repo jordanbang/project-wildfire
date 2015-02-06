@@ -23,7 +23,7 @@ class Question(models.Model):
 	type = models.CharField(max_length = 20)
 	date = models.DateTimeField()
 	
-class Categorie(models.Model):
+class Category(models.Model):
 	question = models.ManyToManyField(Question)
 	category = models.CharField(max_length = 20)
 
