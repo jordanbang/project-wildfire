@@ -47,7 +47,7 @@ def user_detail(request, pk):
 
 @csrf_exempt
 def question_list(request):
-	if request.method == 'GET'
+	if request.method == 'GET':
 		questions = Question.objects.all()
 		serializer = QuestionSerializer(questions, many=True)
 		return JSONResponse(serializer.data)
