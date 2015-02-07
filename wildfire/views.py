@@ -79,13 +79,15 @@ def question_detail(request, pk):
 	if request.method == 'GET':
 		serializer = QuestionSerializer(question)
 		return JSONResponse(serializer.data)
-	elif request.method == 'PUT':
-		data = JSONParser.parse(request)
-		serializer = QuestionSerializer(user, data=data)
-		if serializer.is_valid():
-			serializer.save()
-			return JSONResponse(serializer.data)
-		return JSONResponse(serializer.errors, status=400)
-	elif request.method == 'DELETE':
-		user.delete()
-		return HttpResponse(status=204)
+	
+
+	# elif request.method == 'PUT':
+	# 	data = JSONParser.parse(request)
+	# 	serializer = QuestionSerializer(user, data=data)
+	# 	if serializer.is_valid():
+	# 		serializer.save()
+	# 		return JSONResponse(serializer.data)
+	# 	return JSONResponse(serializer.errors, status=400)
+	# elif request.method == 'DELETE':
+	# 	user.delete()
+	# 	return HttpResponse(status=204)

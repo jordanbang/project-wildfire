@@ -1,7 +1,13 @@
 from django.db import models
 from django.utils import timezone
 
-GENDER_CHOICES = (('M', 'Male'), ('F', 'Female'),)
+GENDER_CHOICES = (('M', 'Male'), 
+				('F', 'Female'),)
+
+QUESTION_TYPE_CHOICE = (('MC', 'Multiple Choice'),
+					('RG', 'Range'),
+					('TF', 'True or False'),
+					('RA', 'Rating'),)
 # Create your models here.
 
 class User(models.Model):
@@ -30,7 +36,7 @@ class RangeOption(models.Model):
 class Question(models.Model):
 	asker = models.ForeignKey(User)
 	text = models.CharField(max_length = 200)
-	question_type = models.CharField(max_length = 20)
+	question_type = models.CharField(max_length = 2, choices=QUESTION_TYPE_CHOICE)
 	date = models.DateTimeField(auto_now=True)
 	multiple_choice_options = models.ForeignKey(MultipleChoiceOption, null=True, blank=True, default=None)
 	range_options = models.ForeignKey(RangeOption, null=True, blank=True, default=None)
