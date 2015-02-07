@@ -1,6 +1,6 @@
 from django.forms import widgets
 from rest_framework import serializers
-from wildfire.models import User, GENDER_CHOICES
+from wildfire.models import User, Question, GENDER_CHOICES
 
 # class UserSerializer(serializers.Serializer):
 # 	pk = serializers.IntegerField(read_only=True)
@@ -27,3 +27,11 @@ class UserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = User
 		fields = ('id', 'username', 'age', 'gender', 'region', 'join_date')
+
+
+class QuestionSerializer(serializers.ModelSerializer):
+	asker = UserSerializer(many=False, read_only=True)
+
+	class Meta:
+		model = Question
+		fields = ('id', 'text', 'type', 'date', 'asker')
