@@ -12,10 +12,9 @@ class User(models.Model):
 	
 
 class Question(models.Model):
-	user = models.ForeignKey(User)
-	id = models.IntegerField(primary_key = True)
+	asker = models.ForeignKey(User)
 	text = models.CharField(max_length = 200)
-	type = models.CharField(max_length = 20)
+	question_type = models.CharField(max_length = 20)
 	date = models.DateTimeField()
 	
 class Category(models.Model):
