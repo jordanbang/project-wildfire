@@ -7,7 +7,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.decorators import api_view
 
 from wildfire.models import User, Question
-from wildfire.serializers import UserSerializer, QuestionSerializer
+from wildfire.serializers import UserSerializer, QuestionSerializer, CreateUserSerializer
 
 # Create your views here.
 class JSONResponse(HttpResponse):
@@ -16,13 +16,13 @@ class JSONResponse(HttpResponse):
 		kwargs['content_type'] = 'application/json'
 		super(JSONResponse, self).__init__(content, **kwargs)
 
+# /user Endpoints
 @csrf_exempt
 def user_list(request):
 	if request.method == 'GET':
 		users = User.objects.all()
 		serializer = UserSerializer(users, many=True)
 		return JSONResponse(serializer.data)
-
 
 @csrf_exempt
 def user_detail(request, pk):
@@ -34,17 +34,34 @@ def user_detail(request, pk):
 	if request.method == 'GET':
 		serializer = UserSerializer(user)
 		return JSONResponse(serializer.data)
-	elif request.method == 'PUT':
+
+@csrf_exempt
+def user_update(request, pk):
+	try:
+		user = User.objects.get(pk=pk)
+	except User.DoesNotExist:
+		return HttpResponse(status=404)
+
+	if request.method == 'POST':
 		data = JSONParser().parse(request)
-		serializer = UserSerializer(user, data=data)
+		serializer = UserSerializer(user, data=data, partial=True)
 		if serializer.is_valid():
 			serializer.save()
 			return JSONResponse(serializer.data)
 		return JSONResponse(serializer.errors, status=400)
-	elif request.method == 'DELETE':
-		user.delete()
-		return HttpResponse(status=204)
 
+@csrf_exempt
+def user_create(request):
+	if request.method == 'POST':
+		data = JSONParser().parse(request)
+		serializer = CreateUserSerializer(data=data)
+		if serializer.is_valid():
+			serializer.save()
+			return JSONResponse(serializer.data)
+		return JSONResponse(serializer.errors, status=400)
+
+
+# /question Endpoints
 @csrf_exempt
 def question_list(request):
 	if request.method == 'GET':
