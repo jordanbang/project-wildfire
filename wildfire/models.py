@@ -22,30 +22,25 @@ class User(models.Model):
 		self.password = password
 		return self
 
-class MultipleChoiceOption(models.Model):
-	choice1 = models.CharField(max_length = 40)
-	choice2 = models.CharField(max_length = 40)
-	choice3 = models.CharField(max_length = 40)
-	choice4 = models.CharField(max_length = 40)
-	choice5 = models.CharField(max_length = 40)
-
-class RangeOption(models.Model):
-	lower_bound = models.IntegerField(default = 0) 
-	upper_bound = models.IntegerField(default = 100)
-
 class Question(models.Model):
 	asker = models.ForeignKey(User)
 	text = models.CharField(max_length = 200)
 	question_type = models.CharField(max_length = 2, choices=QUESTION_TYPE_CHOICE)
 	date = models.DateTimeField(auto_now=True)
-	multiple_choice_options = models.ForeignKey(MultipleChoiceOption, null=True, blank=True, default=None)
-	range_options = models.ForeignKey(RangeOption, null=True, blank=True, default=None)
+	option1 = models.CharField(max_length = 50, blank=True)
+	option2 = models.CharField(max_length = 50, blank=True)
+	option3 = models.CharField(max_length = 50, blank=True)
+	option4 = models.CharField(max_length = 50, blank=True)
+	option5 = models.CharField(max_length = 50, blank=True)
 
 class Category(models.Model):
-	question = models.ManyToManyField(Question)
+	question = models.ManyToManyField(Question, related_name='categories')
 	category = models.CharField(max_length = 20)
+
+	def __unicode__(self):
+		return self.category
 
 class Answer(models.Model):
 	user = models.ForeignKey(User)
 	question = models.ForeignKey(Question)
-	answer = models.IntegerField()
+	answer = models.IntegerField(default=1)

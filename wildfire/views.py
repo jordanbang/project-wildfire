@@ -7,7 +7,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.decorators import api_view
 
 from wildfire.models import User, Question
-from wildfire.serializers import UserSerializer, QuestionSerializer, CreateUserSerializer
+from wildfire.serializers import UserSerializer, QuestionSerializer, CreateUserSerializer, CreateQuestionSerializer
 
 # Create your views here.
 class JSONResponse(HttpResponse):
@@ -80,14 +80,28 @@ def question_detail(request, pk):
 		serializer = QuestionSerializer(question)
 		return JSONResponse(serializer.data)
 	
+@csrf_exempt
+def question_update(request, pk):
+	try:
+		question = Question.objects.get(pk=pk)
+	except Question.DoesNotExist:
+		return HttpResponse(status=404)
 
-	# elif request.method == 'PUT':
-	# 	data = JSONParser.parse(request)
-	# 	serializer = QuestionSerializer(user, data=data)
-	# 	if serializer.is_valid():
-	# 		serializer.save()
-	# 		return JSONResponse(serializer.data)
-	# 	return JSONResponse(serializer.errors, status=400)
-	# elif request.method == 'DELETE':
-	# 	user.delete()
-	# 	return HttpResponse(status=204)
+	if request.method == 'POST':
+		data = JSONParser().parse(request)
+		data['question_type'] = question.question_type
+		serializer = QuestionSerializer(question, data=data, partial=True)
+		if serializer.is_valid():
+			serializer.save()
+			return JSONResponse(serializer.data)
+		return JSONResponse(serializer.errors, status=400)
+
+@csrf_exempt
+def question_create(request):
+	if request.method == 'POST':
+		data = JSONParser().parse(request)
+		serializer = CreateQuestionSerializer(data=data)
+		if serializer.is_valid():
+			new_question = serializer.save()
+			return JSONResponse(QuestionSerializer(new_question).data)
+		return JSONResponse(serializer.errors, status=400)
