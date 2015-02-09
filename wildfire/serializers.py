@@ -115,7 +115,7 @@ class AnswerSerializer(serializers.ModelSerializer):
 
 class CreateAnswerSerializer(serializers.ModelSerializer):
 	class Meta:
-		model = Annswer
+		model = Answer
 		fields = ('id', 'user', 'question', 'answer')
 		read_only_fields = ('id')
 	
