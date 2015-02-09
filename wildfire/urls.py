@@ -14,4 +14,5 @@ urlpatterns = [
 	
 	url(r'^answers/$', views.answer_list),
 	url(r'^answers/(?P<pk>[0-9]+)/$', views.answer_detail),
+	url(r'^answers/create/$', views.question_create),
 ]

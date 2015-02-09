@@ -7,7 +7,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.decorators import api_view
 
 from wildfire.models import User, Question, Answer
-from wildfire.serializers import UserSerializer, QuestionSerializer, CreateUserSerializer, CreateQuestionSerializer, AnswerSerializer
+from wildfire.serializers import UserSerializer, QuestionSerializer, CreateUserSerializer, CreateQuestionSerializer, AnswerSerializer, CreateAnswerSerializer
 
 # Create your views here.
 class JSONResponse(HttpResponse):
@@ -122,4 +122,29 @@ def answer_detail(request, pk):
 
 	if request.method == 'GET':
 		serializer = AnswerSerializer(answer)
-		return JSONResponse(serializer.data)	
+		return JSONResponse(serializer.data)
+
+@csrf_exempt
+def answer_update(request, pk)
+	try:
+		answer = Answer.objects.get(pk=pk)
+	except Answer.DoesNotExist:
+		return HttpResponse(status=404)
+	
+	if request.method == 'POST':
+		data = JSONParser().parse(request)
+		serializer = AnswerSerializer(answer, data=data, partial=True)
+		if serializer.is_valid():
+			serializer.save()
+			return JSONResponse(serializer.data)
+		return JSONResponse(serializer.errors, status=400)
+		
+@csrf_exempt
+def answer_create(request):
+	if request.method =='POST':
+		data = JSONParser().parse(request)
+		serializer = CreateQuestionSerializer(data=data)
+		if serializer.is_valid():
+			new_answer = serializer.save()
+			return JSONResponse(QuestionSerializer(new_question).data)
+		return JSONResponse(serializer.errors, status=400)

@@ -112,3 +112,18 @@ class AnswerSerializer(serializers.ModelSerializer):
 		model = Answer
 		fields = ('id', 'user', 'question', 'answer')
 		read_only_fields = ('id')
+
+class CreateAnswerSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = Annswer
+		fields = ('id', 'user', 'question', 'answer')
+		read_only_fields = ('id')
+	
+	def create(self, validated_data):
+		answer = Answer(
+			user = validated_data['user']
+			question = validated_data['question']
+			answer = validated_data['answer']
+		)
+		answer.save()
+		return answer
