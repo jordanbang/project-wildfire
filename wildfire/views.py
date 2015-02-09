@@ -143,8 +143,8 @@ def answer_update(request, pk):
 def answer_create(request):
 	if request.method =='POST':
 		data = JSONParser().parse(request)
-		serializer = CreateQuestionSerializer(data=data)
+		serializer = CreateAnswerSerializer(data=data)
 		if serializer.is_valid():
-			new_answer = serializer.save()
-			return JSONResponse(QuestionSerializer(new_question).data)
+			serializer.save()
+			return JSONResponse(serializer.data)
 		return JSONResponse(serializer.errors, status=400)

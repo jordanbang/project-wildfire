@@ -108,22 +108,28 @@ class CreateQuestionSerializer(serializers.ModelSerializer):
 		return super(serializers.ModelSerializer, self).to_internal_value(data)
 		
 class AnswerSerializer(serializers.ModelSerializer):
+	user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+	question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
+
 	class Meta:
 		model = Answer
 		fields = ('id', 'user', 'question', 'answer')
 		read_only_fields = ('id')
 
 class CreateAnswerSerializer(serializers.ModelSerializer):
+	user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+	question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
+
 	class Meta:
 		model = Answer
 		fields = ('id', 'user', 'question', 'answer')
 		read_only_fields = ('id')
 	
-	def create(self, validated_data):
-		answer = Answer(
-			user = validated_data['user'],
-			question = validated_data['question'],
-			answer = validated_data['answer']
-		)
-		answer.save()
-		return answer
+	# def create(self, validated_data):
+	# 	answer = Answer(
+	# 		user = validated_data['user'],
+	# 		question = Question.objects.get(pk=validated_data['question']),
+	# 		answer = validated_data['answer']
+	# 	)
+	# 	answer.save()
+	# 	return answer
