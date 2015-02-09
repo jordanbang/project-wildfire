@@ -125,7 +125,7 @@ def answer_detail(request, pk):
 		return JSONResponse(serializer.data)
 
 @csrf_exempt
-def answer_update(request, pk)
+def answer_update(request, pk):
 	try:
 		answer = Answer.objects.get(pk=pk)
 	except Answer.DoesNotExist:
