@@ -1,6 +1,6 @@
 from django.forms import widgets
 from rest_framework import serializers
-from wildfire.models import User, Question, GENDER_CHOICES, QUESTION_TYPE_CHOICE
+from wildfire.models import User, Question, Answer, GENDER_CHOICES, QUESTION_TYPE_CHOICE
 
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
