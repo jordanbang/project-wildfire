@@ -6,7 +6,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from rest_framework.decorators import api_view
 
-from wildfire.models import User, Question
+from wildfire.models import User, Question, Answer
 from wildfire.serializers import UserSerializer, QuestionSerializer, CreateUserSerializer, CreateQuestionSerializer
 
 # Create your views here.
