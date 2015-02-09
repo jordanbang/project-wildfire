@@ -121,8 +121,8 @@ class CreateAnswerSerializer(serializers.ModelSerializer):
 	
 	def create(self, validated_data):
 		answer = Answer(
-			user = validated_data['user']
-			question = validated_data['question']
+			user = validated_data['user'],
+			question = validated_data['question'],
 			answer = validated_data['answer']
 		)
 		answer.save()
