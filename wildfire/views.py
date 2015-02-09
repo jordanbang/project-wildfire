@@ -105,3 +105,21 @@ def question_create(request):
 			new_question = serializer.save()
 			return JSONResponse(QuestionSerializer(new_question).data)
 		return JSONResponse(serializer.errors, status=400)
+
+@csrf_exempt
+def answer_list(request):
+	if request.method == 'GET':
+		answers = Answer.objects.all()
+		serializer = AnswerSerializer(answers, many=True)
+		return JSONResponse(serializer.data)
+
+@csrf_exempt		
+def answer_detail(request, pk):
+	try:
+		answer = Answer.objects.get(pk=pk)
+	except Answer.DoesNotExist:
+		return HttpResponse(status=404)
+
+	if request.method == 'GET':
+		serializer = AnswerSerializer(answer)
+		return JSONResponse(serializer.data)	

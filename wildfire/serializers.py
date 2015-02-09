@@ -106,3 +106,9 @@ class CreateQuestionSerializer(serializers.ModelSerializer):
 				for i in xrange(1,6):
 					data['option' + str(i)] = options[i-1]			
 		return super(serializers.ModelSerializer, self).to_internal_value(data)
+		
+class AnswerSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = Answer
+		fields = ('id', 'user', 'question', 'answer')
+		read_only_fields = ('id')
