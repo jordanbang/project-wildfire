@@ -7,7 +7,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.decorators import api_view
 
 from wildfire.models import User, Question, Answer
-from wildfire.serializers import UserSerializer, QuestionSerializer, CreateUserSerializer, CreateQuestionSerializer
+from wildfire.serializers import UserSerializer, QuestionSerializer, CreateUserSerializer, CreateQuestionSerializer, AnswerSerializer
 
 # Create your views here.
 class JSONResponse(HttpResponse):
