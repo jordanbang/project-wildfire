@@ -40,5 +40,5 @@ class Category(models.Model):
 
 class Answer(models.Model):
 	user = models.ForeignKey(User)
-	question = models.ForeignKey(Question)
+	question = models.ForeignKey(Question, related_name='answers')
 	answer = models.IntegerField(default=1)

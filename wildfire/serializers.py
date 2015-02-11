@@ -27,13 +27,33 @@ class CreateUserSerializer(serializers.ModelSerializer):
 		user.save()
 		return user
 
+class AnswerSerializer(serializers.ModelSerializer):
+	user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+	question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
+
+	class Meta:
+		model = Answer
+		fields = ('id', 'user', 'question', 'answer')
+		read_only_fields = ('id')
+
+class CreateAnswerSerializer(serializers.ModelSerializer):
+	user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+	question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
+
+	class Meta:
+		model = Answer
+		fields = ('id', 'user', 'question', 'answer')
+		read_only_fields = ('id')
+
 class QuestionSerializer(serializers.ModelSerializer):
 	asker = UserSerializer(many=False)
 	categories = serializers.StringRelatedField(many=True, read_only=True)
+	answers = AnswerSerializer(many=True, read_only=True)
 
 	class Meta:
 		model = Question
-		fields = ('id', 'text', 'questionType', 'date', 'asker', 'categories', 'option1', 'option2', 'option3', 'option4', 'option5')
+		fields = ('id', 'text', 'questionType', 'date', 'asker', 'categories', 
+			'option1', 'option2', 'option3', 'option4', 'option5', 'answers')
 		read_only_fields = ('id', 'date')
 
 	def to_representation(self, obj):
@@ -46,6 +66,15 @@ class QuestionSerializer(serializers.ModelSerializer):
 				options.append(option)
 
 		rep['options'] = options
+
+		#For now, always assume that the person requesting info is a (validated) user
+		rep['isUser'] = True
+
+		#For now, isAnswered will be a global field, just returning if the question has been answered.
+		answers = rep['answers']
+		rep['isAnswered'] = len(answers) > 0
+
+
 		return rep
 
 	def to_internal_value(self, data):
@@ -107,22 +136,4 @@ class CreateQuestionSerializer(serializers.ModelSerializer):
 				for i in xrange(1,6):
 					data['option' + str(i)] = options[i-1]			
 		return super(serializers.ModelSerializer, self).to_internal_value(data)
-		
-class AnswerSerializer(serializers.ModelSerializer):
-	user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-	question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
-
-	class Meta:
-		model = Answer
-		fields = ('id', 'user', 'question', 'answer')
-		read_only_fields = ('id')
-
-class CreateAnswerSerializer(serializers.ModelSerializer):
-	user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-	question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
-
-	class Meta:
-		model = Answer
-		fields = ('id', 'user', 'question', 'answer')
-		read_only_fields = ('id')
 	
