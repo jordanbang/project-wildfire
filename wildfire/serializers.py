@@ -5,14 +5,14 @@ from wildfire.models import User, Question, Answer, GENDER_CHOICES, QUESTION_TYP
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = User
-		fields = ('id', 'username', 'age', 'gender', 'region', 'join_date')
-		read_only_fields = ('id', 'join_date')
+		fields = ('id', 'username', 'age', 'gender', 'region', 'joinDate', 'avatarUrl')
+		read_only_fields = ('id', 'joinDate')
 
 class CreateUserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = User
-		fields = ('id', 'username', 'password', 'age', 'gender', 'region', 'join_date')
-		read_only_fields = ('id', 'join_date')
+		fields = ('id', 'username', 'password', 'age', 'gender', 'region', 'joinDate', 'avatarUrl')
+		read_only_fields = ('id', 'joinDate')
 		extra_kwargs = {'password': {'write_only': True}}
 
 	def create(self, validated_data):
@@ -20,19 +20,40 @@ class CreateUserSerializer(serializers.ModelSerializer):
 			username = validated_data['username'],
 			age = validated_data['age'],
 			gender = validated_data['gender'],
-			region = validated_data['region']
+			region = validated_data['region'],
+			avatarUrl = validated_data['avatarUrl']
 		)
 		user.pasword = validated_data['password']
 		user.save()
 		return user
 
+class AnswerSerializer(serializers.ModelSerializer):
+	user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+	question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
+
+	class Meta:
+		model = Answer
+		fields = ('id', 'user', 'question', 'answer')
+		read_only_fields = ('id')
+
+class CreateAnswerSerializer(serializers.ModelSerializer):
+	user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+	question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
+
+	class Meta:
+		model = Answer
+		fields = ('id', 'user', 'question', 'answer')
+		read_only_fields = ('id')
+
 class QuestionSerializer(serializers.ModelSerializer):
 	asker = UserSerializer(many=False)
 	categories = serializers.StringRelatedField(many=True, read_only=True)
+	answers = AnswerSerializer(many=True, read_only=True)
 
 	class Meta:
 		model = Question
-		fields = ('id', 'text', 'question_type', 'date', 'asker', 'categories', 'option1', 'option2', 'option3', 'option4', 'option5')
+		fields = ('id', 'text', 'questionType', 'date', 'asker', 'categories', 
+			'option1', 'option2', 'option3', 'option4', 'option5', 'answers')
 		read_only_fields = ('id', 'date')
 
 	def to_representation(self, obj):
@@ -45,11 +66,20 @@ class QuestionSerializer(serializers.ModelSerializer):
 				options.append(option)
 
 		rep['options'] = options
+
+		#For now, always assume that the person requesting info is a (validated) user
+		rep['isUser'] = True
+
+		#For now, isAnswered will be a global field, just returning if the question has been answered.
+		answers = rep['answers']
+		rep['isAnswered'] = len(answers) > 0
+
+
 		return rep
 
 	def to_internal_value(self, data):
 		options = data.pop('options', None)
-		question_type = data.get('question_type')
+		question_type = data.get('questionType')
 
 		if options:
 			# Need to update the options for either multiple choice or range values
@@ -89,7 +119,7 @@ class CreateQuestionSerializer(serializers.ModelSerializer):
 
 	def to_internal_value(self, data):
 		options = data.pop('options', None)
-		question_type = data.get('question_type')
+		question_type = data.get('questionType')
 
 		if options:
 			# Need to update the options for either multiple choice or range values
@@ -106,30 +136,4 @@ class CreateQuestionSerializer(serializers.ModelSerializer):
 				for i in xrange(1,6):
 					data['option' + str(i)] = options[i-1]			
 		return super(serializers.ModelSerializer, self).to_internal_value(data)
-		
-class AnswerSerializer(serializers.ModelSerializer):
-	user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-	question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
-
-	class Meta:
-		model = Answer
-		fields = ('id', 'user', 'question', 'answer')
-		read_only_fields = ('id')
-
-class CreateAnswerSerializer(serializers.ModelSerializer):
-	user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-	question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
-
-	class Meta:
-		model = Answer
-		fields = ('id', 'user', 'question', 'answer')
-		read_only_fields = ('id')
 	
-	# def create(self, validated_data):
-	# 	answer = Answer(
-	# 		user = validated_data['user'],
-	# 		question = Question.objects.get(pk=validated_data['question']),
-	# 		answer = validated_data['answer']
-	# 	)
-	# 	answer.save()
-	# 	return answer

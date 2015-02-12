@@ -16,16 +16,14 @@ class User(models.Model):
 	age = models.IntegerField()
 	gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
 	region = models.CharField(max_length = 20)
-	join_date = models.DateTimeField(auto_now=True)
+	joinDate = models.DateTimeField(auto_now=True)
+	avatarUrl = models.URLField(blank=True)
 
-	def set_password(self, password):
-		self.password = password
-		return self
 
 class Question(models.Model):
 	asker = models.ForeignKey(User)
 	text = models.CharField(max_length = 200)
-	question_type = models.CharField(max_length = 2, choices=QUESTION_TYPE_CHOICE)
+	questionType = models.CharField(max_length = 2, choices=QUESTION_TYPE_CHOICE)
 	date = models.DateTimeField(auto_now=True)
 	option1 = models.CharField(max_length = 50, blank=True)
 	option2 = models.CharField(max_length = 50, blank=True)
@@ -42,5 +40,5 @@ class Category(models.Model):
 
 class Answer(models.Model):
 	user = models.ForeignKey(User)
-	question = models.ForeignKey(Question)
+	question = models.ForeignKey(Question, related_name='answers')
 	answer = models.IntegerField(default=1)
