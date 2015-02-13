@@ -19,6 +19,9 @@ class User(models.Model):
 	joinDate = models.DateTimeField(auto_now=True)
 	avatarUrl = models.URLField(blank=True)
 
+	def __unicode__(self):
+		return self.username
+
 
 class Question(models.Model):
 	asker = models.ForeignKey(User)
@@ -30,6 +33,9 @@ class Question(models.Model):
 	option3 = models.CharField(max_length = 50, blank=True)
 	option4 = models.CharField(max_length = 50, blank=True)
 	option5 = models.CharField(max_length = 50, blank=True)
+
+	def __unicode__(self):
+		return self.text
 
 class Category(models.Model):
 	question = models.ManyToManyField(Question, related_name='categories')
