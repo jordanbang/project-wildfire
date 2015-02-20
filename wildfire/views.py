@@ -98,7 +98,7 @@ def user_create(request):
 @csrf_exempt
 def question_list(request):
 	if request.method == 'GET':
-		questions = Question.objects.all()
+		questions = Question.objects.all().order_by('-date')
 		serializer = QuestionSerializer(questions, many=True)
 		return JSONResponse(serializer.data)
 
