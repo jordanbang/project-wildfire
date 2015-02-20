@@ -102,7 +102,7 @@ class CreateQuestionSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = Question
-		fields = ('id', 'text', 'question_type', 'date', 'asker', 'option1', 'option2', 'option3', 'option4', 'option5')
+		fields = ('id', 'text', 'questionType', 'date', 'asker', 'option1', 'option2', 'option3', 'option4', 'option5')
 		read_only_fields = ('id', 'date')
 
 	def to_representation(self, obj):
