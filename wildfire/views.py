@@ -1,13 +1,18 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from rest_framework.decorators import api_view
+from rest_framework import permissions
 
-from wildfire.models import User, Question, Answer
-from wildfire.serializers import UserSerializer, QuestionSerializer, CreateUserSerializer, CreateQuestionSerializer, AnswerSerializer, CreateAnswerSerializer
+from wildfire.models import UserProfile, Question, Answer
+from wildfire.serializers import UserSerializer, UserProfileSerializer, QuestionSerializer
+from wildfire.serializers import CreateQuestionSerializer
+from wildfire.serializers import AnswerSerializer
 
 # Create your views here.
 class JSONResponse(HttpResponse):
@@ -18,47 +23,75 @@ class JSONResponse(HttpResponse):
 
 # /user Endpoints
 @csrf_exempt
+@login_required
 def user_list(request):
 	if request.method == 'GET':
-		users = User.objects.all()
-		serializer = UserSerializer(users, many=True)
+		users = UserProfile.objects.all()
+		serializer = UserProfileSerializer(users, many=True)
+
+		if request.user.is_authenticated():
+			print("User is authenticated " + request.user.username)
+		else:
+			print("User is not authenticated")
+
 		return JSONResponse(serializer.data)
 
 @csrf_exempt
+@login_required
 def user_detail(request, pk):
 	try:
-		user = User.objects.get(pk=pk)
-	except User.DoesNotExist:
+		user = UserProfile.objects.get(pk=pk)
+		print("User id:" + str(user.user.id))
+		print("User profile id: " + str(user.id))
+	except UserProfile.DoesNotExist:
 		return HttpResponse(status=404)
 
 	if request.method == 'GET':
-		serializer = UserSerializer(user)
+		serializer = UserProfileSerializer(user)
 		return JSONResponse(serializer.data)
 
 @csrf_exempt
+@login_required
 def user_update(request, pk):
 	try:
-		user = User.objects.get(pk=pk)
-	except User.DoesNotExist:
+		userProfile = UserProfile.objects.get(pk=pk)
+		user = userProfile.user
+	except UserProfile.DoesNotExist:
 		return HttpResponse(status=404)
+
 
 	if request.method == 'POST':
 		data = JSONParser().parse(request)
-		serializer = UserSerializer(user, data=data, partial=True)
-		if serializer.is_valid():
-			serializer.save()
-			return JSONResponse(serializer.data)
-		return JSONResponse(serializer.errors, status=400)
+		userProfileSerializer = UserProfileSerializer(userProfile, data=data, partial=True)
+		userSerializer = UserSerializer(user, data=data, partial=True)
+		if userProfileSerializer.is_valid() and userSerializer.is_valid():
+			userSerializer.save()
+			userProfileSerializer.save()
+			return JSONResponse(userProfileSerializer.data)
+		errors = dict()
+		errors.update(userProfileSerializer.errors)
+		errors.update(userSerializer.errors)
+		return JSONResponse(errors, status=400)
 
 @csrf_exempt
+@login_required
 def user_create(request):
 	if request.method == 'POST':
 		data = JSONParser().parse(request)
-		serializer = CreateUserSerializer(data=data)
-		if serializer.is_valid():
-			serializer.save()
-			return JSONResponse(serializer.data)
-		return JSONResponse(serializer.errors, status=400)
+
+		errors = dict()
+		userSerializer = UserSerializer(data=data)
+		if userSerializer.is_valid():
+			new_user = userSerializer.save()
+			userProfileSerializer = UserProfileSerializer(new_user.profile, data=data, partial=True)
+			
+			if userProfileSerializer.is_valid():
+				userProfileSerializer.save()
+			return JSONResponse(userProfileSerializer.data)
+			errors.update(userProfileSerializer.errors)
+		else:
+			errors.update(userSerializer.errors)
+		return JSONResponse(errors, status=400)
 
 
 # /question Endpoints
@@ -89,7 +122,6 @@ def question_update(request, pk):
 
 	if request.method == 'POST':
 		data = JSONParser().parse(request)
-		data['question_type'] = question.question_type
 		serializer = QuestionSerializer(question, data=data, partial=True)
 		if serializer.is_valid():
 			serializer.save()
@@ -106,6 +138,7 @@ def question_create(request):
 			return JSONResponse(QuestionSerializer(new_question).data)
 		return JSONResponse(serializer.errors, status=400)
 
+#/answers endpoints
 @csrf_exempt
 def answer_list(request):
 	if request.method == 'GET':
@@ -143,7 +176,7 @@ def answer_update(request, pk):
 def answer_create(request):
 	if request.method =='POST':
 		data = JSONParser().parse(request)
-		serializer = CreateAnswerSerializer(data=data)
+		serializer = AnswerSerializer(data=data)
 		if serializer.is_valid():
 			serializer.save()
 			return JSONResponse(serializer.data)

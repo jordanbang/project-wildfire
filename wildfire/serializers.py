@@ -1,43 +1,59 @@
 from django.forms import widgets
+from django.contrib.auth.models import User
+
 from rest_framework import serializers
-from wildfire.models import User, Question, Answer, GENDER_CHOICES, QUESTION_TYPE_CHOICE
+
+from wildfire.models import UserProfile, Question, Answer
+from wildfire.models import GENDER_CHOICES, QUESTION_TYPE_CHOICE
+
 
 class UserSerializer(serializers.ModelSerializer):
+	password = serializers.CharField(write_only=True)
 	class Meta:
 		model = User
-		fields = ('id', 'username', 'age', 'gender', 'region', 'joinDate', 'avatarUrl')
-		read_only_fields = ('id', 'joinDate')
+		fields = ('id', 'username', 'email', 'first_name', 'last_name', 'password')
+		read_only_fields = ('id')
 
-class CreateUserSerializer(serializers.ModelSerializer):
-	class Meta:
-		model = User
-		fields = ('id', 'username', 'password', 'age', 'gender', 'region', 'joinDate', 'avatarUrl')
-		read_only_fields = ('id', 'joinDate')
-		extra_kwargs = {'password': {'write_only': True}}
+	def update(self, instance, validated_data):
+		instance.username = validated_data.get('username', instance.username)
+		instance.email = validated_data.get('email', instance.email)
+		instance.first_name = validated_data.get('first_name', instance.first_name)
+		instance.last_name = validated_data.get('last_name', instance.last_name)
+		if 'password' in validated_data:
+			instance.set_password(validated_data['password'])	
+		instance.save()
+		return instance
 
 	def create(self, validated_data):
-		user = User(
-			username = validated_data['username'],
-			age = validated_data['age'],
-			gender = validated_data['gender'],
-			region = validated_data['region'],
-			avatarUrl = validated_data['avatarUrl']
-		)
-		user.pasword = validated_data['password']
+		user = User.objects.create(**validated_data)
+		user.set_password(validated_data['password'])
 		user.save()
 		return user
 
-class AnswerSerializer(serializers.ModelSerializer):
-	user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-	question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
+class UserProfileSerializer(serializers.ModelSerializer):
+	username = serializers.CharField(source='user.username')
+	email = serializers.EmailField(source='user.email')
+	first_name = serializers.CharField(source='user.first_name')
+	last_name = serializers.CharField(source='user.last_name')
+	password = serializers.CharField(source='user.password', write_only=True)
+	id = serializers.IntegerField()
 
 	class Meta:
-		model = Answer
-		fields = ('id', 'user', 'question', 'answer')
-		read_only_fields = ('id')
+		model = UserProfile
+		fields = ('id', 'email', 'username', 'first_name', 'last_name', 
+			'age', 'gender', 'region', 'joinDate', 'avatarUrl', 'password')
+		read_only_fields = ('id', 'joinDate')
 
-class CreateAnswerSerializer(serializers.ModelSerializer):
-	user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+	def update(self, instance, validated_data):
+		instance.age = validated_data.get('age', instance.age)
+		instance.gender = validated_data.get('gender', instance.gender)
+		instance.region = validated_data.get('region', instance.region)
+		instance.avatarUrl = validated_data.get('avatarUrl', instance.avatarUrl)
+		instance.save()
+		return instance
+
+class AnswerSerializer(serializers.ModelSerializer):
+	user = serializers.PrimaryKeyRelatedField(queryset=UserProfile.objects.all())
 	question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
 
 	class Meta:
@@ -46,7 +62,7 @@ class CreateAnswerSerializer(serializers.ModelSerializer):
 		read_only_fields = ('id')
 
 class QuestionSerializer(serializers.ModelSerializer):
-	asker = UserSerializer(many=False)
+	asker = UserProfileSerializer(many=False)
 	categories = serializers.StringRelatedField(many=True, read_only=True)
 	answers = AnswerSerializer(many=True, read_only=True)
 
@@ -79,9 +95,8 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 	def to_internal_value(self, data):
 		options = data.pop('options', None)
-		question_type = data.get('questionType')
-
-		if options:
+		if options and 'questionType' in data:
+			question_type = data.get('questionType')
 			# Need to update the options for either multiple choice or range values
 			if question_type == 'MC' or question_type == 'RG':
 				for i in xrange(0,5):
@@ -98,7 +113,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 		return super(serializers.ModelSerializer, self).to_internal_value(data)
 
 class CreateQuestionSerializer(serializers.ModelSerializer):
-	asker = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+	asker = serializers.PrimaryKeyRelatedField(queryset=UserProfile.objects.all())
 
 	class Meta:
 		model = Question
@@ -119,9 +134,8 @@ class CreateQuestionSerializer(serializers.ModelSerializer):
 
 	def to_internal_value(self, data):
 		options = data.pop('options', None)
-		question_type = data.get('questionType')
-
-		if options:
+		if options and 'questionType' in data:
+			question_type = data.get('questionType')
 			# Need to update the options for either multiple choice or range values
 			if question_type == 'MC' or question_type == 'RG':
 				for i in xrange(0,5):
