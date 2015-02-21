@@ -1,13 +1,18 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
+from rest_framework import status
+from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
-from rest_framework.decorators import api_view
-from rest_framework import permissions
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.authentication import SessionAuthentication
 
 from wildfire.models import UserProfile, Question, Answer
 from wildfire.serializers import UserSerializer, UserProfileSerializer, QuestionSerializer
@@ -23,75 +28,61 @@ class JSONResponse(HttpResponse):
 
 # /user Endpoints
 @csrf_exempt
-@login_required
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
 def user_list(request):
 	if request.method == 'GET':
 		users = UserProfile.objects.all()
-		serializer = UserProfileSerializer(users, many=True)
-
 		if request.user.is_authenticated():
 			print("User is authenticated " + request.user.username)
 		else:
 			print("User is not authenticated")
-
-		return JSONResponse(serializer.data)
+		serializer = UserProfileSerializer(users, many=True)
+		return Response(serializer.data)
 
 @csrf_exempt
-@login_required
+@api_view(['GET', 'POST'])
 def user_detail(request, pk):
 	try:
 		user = UserProfile.objects.get(pk=pk)
-		print("User id:" + str(user.user.id))
-		print("User profile id: " + str(user.id))
 	except UserProfile.DoesNotExist:
-		return HttpResponse(status=404)
+		return Response(status=status.HTTP_404_NOT_FOUND)
 
 	if request.method == 'GET':
 		serializer = UserProfileSerializer(user)
-		return JSONResponse(serializer.data)
-
-@csrf_exempt
-@login_required
-def user_update(request, pk):
-	try:
-		userProfile = UserProfile.objects.get(pk=pk)
-		user = userProfile.user
-	except UserProfile.DoesNotExist:
-		return HttpResponse(status=404)
-
-
-	if request.method == 'POST':
+		return Response(serializer.data)
+	elif request.method == 'POST':
 		data = JSONParser().parse(request)
 		userProfileSerializer = UserProfileSerializer(userProfile, data=data, partial=True)
 		userSerializer = UserSerializer(user, data=data, partial=True)
 		if userProfileSerializer.is_valid() and userSerializer.is_valid():
 			userSerializer.save()
 			userProfileSerializer.save()
-			return JSONResponse(userProfileSerializer.data)
+			return Response(userProfileSerializer.data)
 		errors = dict()
 		errors.update(userProfileSerializer.errors)
 		errors.update(userSerializer.errors)
-		return JSONResponse(errors, status=400)
+		return Response(errors, status=status.HTTP_400_NOT_FOUND)
+		
 
 @csrf_exempt
+@api_view(['GET'])
 @login_required
 def user_create(request):
-	if request.method == 'POST':
-		data = JSONParser().parse(request)
-
-		errors = dict()
-		userSerializer = UserSerializer(data=data)
-		if userSerializer.is_valid():
-			new_user = userSerializer.save()
-			userProfileSerializer = UserProfileSerializer(new_user.profile, data=data, partial=True)
-			
-			if userProfileSerializer.is_valid():
-				userProfileSerializer.save()
-			return JSONResponse(userProfileSerializer.data)
-			errors.update(userProfileSerializer.errors)
-		else:
-			errors.update(userSerializer.errors)
-		return JSONResponse(errors, status=400)
+	data = JSONParser().parse(request)
+	errors = dict()
+	userSerializer = UserSerializer(data=data)
+	if userSerializer.is_valid():
+		new_user = userSerializer.save()
+		userProfileSerializer = UserProfileSerializer(new_user.profile, data=data, partial=True)
+		
+		if userProfileSerializer.is_valid():
+			userProfileSerializer.save()
+		return JSONResponse(userProfileSerializer.data)
+		errors.update(userProfileSerializer.errors)
+	else:
+		errors.update(userSerializer.errors)
+	return JSONResponse(errors, status=400)
 
 
 # /question Endpoints
@@ -181,3 +172,30 @@ def answer_create(request):
 			serializer.save()
 			return JSONResponse(serializer.data)
 		return JSONResponse(serializer.errors, status=400)
+
+
+# @api_view(['GET'])
+# @authentication_classes((SessionAuthentication,))
+# def example_view(request):
+# 	content = {
+# 		'user':unicode(request.user),
+# 		'auth':unicode(request.auth),
+# 	}
+# 	return Response(content)
+
+
+
+class AuthView(APIView):
+	def post(self, request, *args, **kwargs):
+		auth_user = authenticate(username=request.POST['username'], password=request.POST['password'])
+		if auth_user is not None:
+			if auth_user.is_active:
+				login(request, auth_user)
+				return Response(UserSerializer(auth_user).data)
+			else:
+				return Response(status=403)
+		return Response(status=404)
+
+	def delete(self, request, *args, **kwargs):
+		logout(request)
+		return Response({})
