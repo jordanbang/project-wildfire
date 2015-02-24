@@ -16,7 +16,6 @@ from rest_framework.authentication import SessionAuthentication
 
 from wildfire.models import UserProfile, Question, Answer
 from wildfire.serializers import UserSerializer, UserProfileSerializer, QuestionSerializer
-from wildfire.serializers import CreateQuestionSerializer
 from wildfire.serializers import AnswerSerializer
 
 # Create your views here.
@@ -27,7 +26,6 @@ class JSONResponse(HttpResponse):
 		super(JSONResponse, self).__init__(content, **kwargs)
 
 # /user Endpoints
-@csrf_exempt
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
 def user_list(request):
@@ -40,7 +38,6 @@ def user_list(request):
 		serializer = UserProfileSerializer(users, many=True)
 		return Response(serializer.data)
 
-@csrf_exempt
 @api_view(['GET', 'POST'])
 def user_detail(request, pk):
 	try:
@@ -64,9 +61,7 @@ def user_detail(request, pk):
 		errors.update(userSerializer.errors)
 		return Response(errors, status=status.HTTP_400_NOT_FOUND)
 		
-
-@csrf_exempt
-@api_view(['GET'])
+@api_view(['POST'])
 @login_required
 def user_create(request):
 	data = JSONParser().parse(request)
@@ -86,14 +81,12 @@ def user_create(request):
 
 
 # /question Endpoints
-@csrf_exempt
 def question_list(request):
 	if request.method == 'GET':
 		questions = Question.objects.all().order_by('-date')
 		serializer = QuestionSerializer(questions, many=True)
 		return JSONResponse(serializer.data)
 
-@csrf_exempt
 def question_detail(request, pk):
 	try:
 		question = Question.objects.get(pk=pk)
@@ -104,7 +97,6 @@ def question_detail(request, pk):
 		serializer = QuestionSerializer(question)
 		return JSONResponse(serializer.data)
 	
-@csrf_exempt
 def question_update(request, pk):
 	try:
 		question = Question.objects.get(pk=pk)
@@ -123,21 +115,19 @@ def question_update(request, pk):
 def question_create(request):
 	if request.method == 'POST':
 		data = JSONParser().parse(request)
-		serializer = CreateQuestionSerializer(data=data)
+		serializer = QuestionSerializer(data=data)
 		if serializer.is_valid():
 			new_question = serializer.save()
-			return JSONResponse(QuestionSerializer(new_question).data)
+			return JSONResponse(serializer.data)
 		return JSONResponse(serializer.errors, status=400)
 
 #/answers endpoints
-@csrf_exempt
 def answer_list(request):
 	if request.method == 'GET':
 		answers = Answer.objects.all()
 		serializer = AnswerSerializer(answers, many=True)
 		return JSONResponse(serializer.data)
-
-@csrf_exempt		
+		
 def answer_detail(request, pk):
 	try:
 		answer = Answer.objects.get(pk=pk)
@@ -148,7 +138,6 @@ def answer_detail(request, pk):
 		serializer = AnswerSerializer(answer)
 		return JSONResponse(serializer.data)
 
-@csrf_exempt
 def answer_update(request, pk):
 	try:
 		answer = Answer.objects.get(pk=pk)
@@ -163,7 +152,6 @@ def answer_update(request, pk):
 			return JSONResponse(serializer.data)
 		return JSONResponse(serializer.errors, status=400)
 		
-@csrf_exempt
 def answer_create(request):
 	if request.method =='POST':
 		data = JSONParser().parse(request)
@@ -173,18 +161,7 @@ def answer_create(request):
 			return JSONResponse(serializer.data)
 		return JSONResponse(serializer.errors, status=400)
 
-
-# @api_view(['GET'])
-# @authentication_classes((SessionAuthentication,))
-# def example_view(request):
-# 	content = {
-# 		'user':unicode(request.user),
-# 		'auth':unicode(request.auth),
-# 	}
-# 	return Response(content)
-
-
-
+# Authorization view
 class AuthView(APIView):
 	def post(self, request, *args, **kwargs):
 		auth_user = authenticate(username=request.POST['username'], password=request.POST['password'])

@@ -21,7 +21,7 @@ class UserProfile(models.Model):
 	gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
 	region = models.CharField(max_length = 20)
 	joinDate = models.DateTimeField(auto_now=True)
-	avatarUrl = models.URLField(blank=True)
+	avatarUrl = models.URLField(blank=True, max_length = 500)
 
 	def __unicode__(self):
 		return self.user.username

@@ -6,6 +6,8 @@ from rest_framework import serializers
 from wildfire.models import UserProfile, Question, Answer
 from wildfire.models import GENDER_CHOICES, QUESTION_TYPE_CHOICE
 
+from question_options import to_array, to_columns
+
 
 class UserSerializer(serializers.ModelSerializer):
 	password = serializers.CharField(write_only=True)
@@ -35,7 +37,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 	email = serializers.EmailField(source='user.email')
 	first_name = serializers.CharField(source='user.first_name')
 	last_name = serializers.CharField(source='user.last_name')
-	password = serializers.CharField(source='user.password', write_only=True)
+	password = serializers.CharField(source='user.password', write_only=True, required=False)
 	id = serializers.IntegerField()
 
 	class Meta:
@@ -74,14 +76,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 	def to_representation(self, obj):
 		rep = super(serializers.ModelSerializer, self).to_representation(obj)
-		
-		options = []
-		for i in xrange(1,6):
-			option = rep.pop('option' + str(i))
-			if option:
-				options.append(option)
-
-		rep['options'] = options
+		rep['options'] = to_array(rep)
 
 		#For now, always assume that the person requesting info is a (validated) user
 		rep['isUser'] = True
@@ -89,65 +84,21 @@ class QuestionSerializer(serializers.ModelSerializer):
 		#For now, isAnswered will be a global field, just returning if the question has been answered.
 		answers = rep['answers']
 		rep['isAnswered'] = len(answers) > 0
-
-
 		return rep
 
 	def to_internal_value(self, data):
-		options = data.pop('options', None)
-		if options and 'questionType' in data:
-			question_type = data.get('questionType')
-			# Need to update the options for either multiple choice or range values
-			if question_type == 'MC' or question_type == 'RG':
-				for i in xrange(0,5):
-					if i < len(options) and options[i]:
-						data['option' + str(i+1)] = options[i]
-					else:
-						data['option' + str(i+1)] = ""
-			elif question_type == 'TF':
-				data['option1'] = 'True'
-				data['option2'] = 'False'
-			elif question_type == 'RA':
-				for i in xrange(1,6):
-					data['option' + str(i)] = options[i-1]			
+		asker_id = data.get('asker', None)
+		if asker_id != None:
+			asker = UserProfile.objects.get(pk=asker_id)
+			data['asker'] = UserProfileSerializer(asker).data
+		data = to_columns(data)			
 		return super(serializers.ModelSerializer, self).to_internal_value(data)
 
-class CreateQuestionSerializer(serializers.ModelSerializer):
-	asker = serializers.PrimaryKeyRelatedField(queryset=UserProfile.objects.all())
-
-	class Meta:
-		model = Question
-		fields = ('id', 'text', 'questionType', 'date', 'asker', 'option1', 'option2', 'option3', 'option4', 'option5')
-		read_only_fields = ('id', 'date')
-
-	def to_representation(self, obj):
-		rep = super(serializers.ModelSerializer, self).to_representation(obj)
-		
-		options = []
-		for i in xrange(1,6):
-			option = rep.pop('option' + str(i))
-			if option:
-				options.append(option)
-
-		rep['options'] = options
-		return rep
-
-	def to_internal_value(self, data):
-		options = data.pop('options', None)
-		if options and 'questionType' in data:
-			question_type = data.get('questionType')
-			# Need to update the options for either multiple choice or range values
-			if question_type == 'MC' or question_type == 'RG':
-				for i in xrange(0,5):
-					if i < len(options) and options[i]:
-						data['option' + str(i+1)] = options[i]
-					else:
-						data['option' + str(i+1)] = ""
-			elif question_type == 'TF':
-				data['option1'] = 'True'
-				data['option2'] = 'False'
-			elif question_type == 'RA':
-				for i in xrange(1,6):
-					data['option' + str(i)] = options[i-1]			
-		return super(serializers.ModelSerializer, self).to_internal_value(data)
+	def create(self, validated_data):
+		asker = validated_data.pop('asker', None)
+		if asker != None:
+			asker = UserProfile.objects.get(pk=asker.pop('id'))
+		question = Question.objects.create(asker=asker, **validated_data)
+		question.save()
+		return question
 	
