@@ -17,6 +17,7 @@ from rest_framework.authentication import SessionAuthentication
 from wildfire.models import UserProfile, Question, Answer
 from wildfire.serializers import UserSerializer, UserProfileSerializer, QuestionSerializer
 from wildfire.serializers import AnswerSerializer
+from wildfire.permissions import isOwnerOrReadOnly
 
 # Create your views here.
 class JSONResponse(HttpResponse):
@@ -27,7 +28,6 @@ class JSONResponse(HttpResponse):
 
 # /user Endpoints
 @api_view(['GET'])
-@permission_classes((IsAuthenticated,))
 def user_list(request):
 	if request.method == 'GET':
 		users = UserProfile.objects.all()
@@ -39,6 +39,7 @@ def user_list(request):
 		return Response(serializer.data)
 
 @api_view(['GET', 'POST'])
+@permission_classes((isOwnerOrReadOnly, IsAuthenticatedOrReadOnly))
 def user_detail(request, pk):
 	try:
 		user = UserProfile.objects.get(pk=pk)
@@ -62,7 +63,6 @@ def user_detail(request, pk):
 		return Response(errors, status=status.HTTP_400_NOT_FOUND)
 		
 @api_view(['POST'])
-@login_required
 def user_create(request):
 	data = JSONParser().parse(request)
 	errors = dict()
@@ -73,6 +73,8 @@ def user_create(request):
 		
 		if userProfileSerializer.is_valid():
 			userProfileSerializer.save()
+
+		#TODO: should log the user in at this point
 		return JSONResponse(userProfileSerializer.data)
 		errors.update(userProfileSerializer.errors)
 	else:
@@ -96,7 +98,8 @@ def question_detail(request, pk):
 	if request.method == 'GET':
 		serializer = QuestionSerializer(question)
 		return JSONResponse(serializer.data)
-	
+
+@permissions((isOwnerOrReadOnly, IsAuthenticatedOrReadOnly))	
 def question_update(request, pk):
 	try:
 		question = Question.objects.get(pk=pk)
@@ -138,6 +141,8 @@ def answer_detail(request, pk):
 		serializer = AnswerSerializer(answer)
 		return JSONResponse(serializer.data)
 
+
+@permissions((isOwnerOrReadOnly))
 def answer_update(request, pk):
 	try:
 		answer = Answer.objects.get(pk=pk)
@@ -160,6 +165,8 @@ def answer_create(request):
 			serializer.save()
 			return JSONResponse(serializer.data)
 		return JSONResponse(serializer.errors, status=400)
+
+
 
 # Authorization view
 class AuthView(APIView):
