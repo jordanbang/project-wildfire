@@ -16,7 +16,7 @@ from rest_framework.authentication import SessionAuthentication
 
 from wildfire.models import UserProfile, Question, Answer
 from wildfire.serializers import UserSerializer, UserProfileSerializer, QuestionSerializer
-from wildfire.serializers import AnswerSerializer
+from wildfire.serializers import AnswerSerializer, StatsSerializer
 
 # Create your views here.
 class JSONResponse(HttpResponse):
@@ -120,7 +120,7 @@ def question_create(request):
 			new_question = serializer.save()
 			return JSONResponse(serializer.data)
 		return JSONResponse(serializer.errors, status=400)
-
+		
 #/answers endpoints
 def answer_list(request):
 	if request.method == 'GET':
@@ -160,6 +160,17 @@ def answer_create(request):
 			serializer.save()
 			return JSONResponse(serializer.data)
 		return JSONResponse(serializer.errors, status=400)
+
+#/stats endpoints
+def stats(request, pk):
+	try:
+		question = Question.objects.get(pk=pk)
+	except Question.DoesNotExist:
+		return HttpResponse(status=404)
+
+	if request.method == 'GET':
+		serializer = StatsSerializer(question)
+		return JSONResponse(serializer.data)
 
 # Authorization view
 class AuthView(APIView):

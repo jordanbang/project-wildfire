@@ -101,4 +101,30 @@ class QuestionSerializer(serializers.ModelSerializer):
 		question = Question.objects.create(asker=asker, **validated_data)
 		question.save()
 		return question
-	
+		
+class StatsSerializer(serializers.BaseSerializer):
+	def to_representation(self, obj):
+		answers = Answer.objects.filter(question=obj.pk)
+		return{
+			'quick':{
+				'option1': answers.filter(answer = 0).count(),
+				'option2': answers.filter(answer = 1).count(),
+				'option3': answers.filter(answer = 2).count(),
+				'option4': answers.filter(answer = 3).count(),
+				'option5': answers.filter(answer = 4).count()
+			},
+			'male':{
+				'option1': answers.filter(answer = 0,user__gender = "M").count(),
+				'option2': answers.filter(answer = 1,user__gender = "M").count(),
+				'option3': answers.filter(answer = 2,user__gender = "M").count(),
+				'option4': answers.filter(answer = 3,user__gender = "M").count(),
+				'option5': answers.filter(answer = 4,user__gender = "M").count()
+			},
+			'female':{
+				'option1': answers.filter(answer = 0,user__gender = "F").count(),
+				'option2': answers.filter(answer = 1,user__gender = "F").count(),
+				'option3': answers.filter(answer = 2,user__gender = "F").count(),
+				'option4': answers.filter(answer = 3,user__gender = "F").count(),
+				'option5': answers.filter(answer = 4,user__gender = "F").count()
+			}
+		}
