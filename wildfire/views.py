@@ -27,6 +27,7 @@ class JSONResponse(HttpResponse):
 
 # /user Endpoints
 @api_view(['GET'])
+@csrf_exempt
 @permission_classes((IsAuthenticated,))
 def user_list(request):
 	if request.method == 'GET':
@@ -39,6 +40,7 @@ def user_list(request):
 		return Response(serializer.data)
 
 @api_view(['GET', 'POST'])
+@csrf_exempt
 def user_detail(request, pk):
 	try:
 		user = UserProfile.objects.get(pk=pk)
@@ -62,6 +64,7 @@ def user_detail(request, pk):
 		return Response(errors, status=status.HTTP_400_NOT_FOUND)
 		
 @api_view(['POST'])
+@csrf_exempt
 @login_required
 def user_create(request):
 	data = JSONParser().parse(request)
@@ -81,12 +84,14 @@ def user_create(request):
 
 
 # /question Endpoints
+@csrf_exempt
 def question_list(request):
 	if request.method == 'GET':
 		questions = Question.objects.all().order_by('-date')
 		serializer = QuestionSerializer(questions, many=True)
 		return JSONResponse(serializer.data)
 
+@csrf_exempt
 def question_detail(request, pk):
 	try:
 		question = Question.objects.get(pk=pk)
@@ -96,7 +101,8 @@ def question_detail(request, pk):
 	if request.method == 'GET':
 		serializer = QuestionSerializer(question)
 		return JSONResponse(serializer.data)
-	
+
+@csrf_exempt	
 def question_update(request, pk):
 	try:
 		question = Question.objects.get(pk=pk)
@@ -120,14 +126,16 @@ def question_create(request):
 			new_question = serializer.save()
 			return JSONResponse(serializer.data)
 		return JSONResponse(serializer.errors, status=400)
-		
+
+@csrf_exempt		
 #/answers endpoints
 def answer_list(request):
 	if request.method == 'GET':
 		answers = Answer.objects.all()
 		serializer = AnswerSerializer(answers, many=True)
 		return JSONResponse(serializer.data)
-		
+
+@csrf_exempt		
 def answer_detail(request, pk):
 	try:
 		answer = Answer.objects.get(pk=pk)
@@ -138,6 +146,7 @@ def answer_detail(request, pk):
 		serializer = AnswerSerializer(answer)
 		return JSONResponse(serializer.data)
 
+@csrf_exempt
 def answer_update(request, pk):
 	try:
 		answer = Answer.objects.get(pk=pk)
@@ -151,7 +160,8 @@ def answer_update(request, pk):
 			serializer.save()
 			return JSONResponse(serializer.data)
 		return JSONResponse(serializer.errors, status=400)
-		
+
+@csrf_exempt		
 def answer_create(request):
 	if request.method =='POST':
 		data = JSONParser().parse(request)
@@ -162,6 +172,7 @@ def answer_create(request):
 		return JSONResponse(serializer.errors, status=400)
 
 #/stats endpoints
+@csrf_exempt
 def stats(request, pk):
 	try:
 		question = Question.objects.get(pk=pk)
