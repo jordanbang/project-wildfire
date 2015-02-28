@@ -84,6 +84,15 @@ class QuestionSerializer(serializers.ModelSerializer):
 		#For now, isAnswered will be a global field, just returning if the question has been answered.
 		answers = rep['answers']
 		rep['isAnswered'] = len(answers) > 0
+		
+		answers = Answer.objects.filter(question=rep['id'])
+		rep['quick'] = {
+			'option1': answers.filter(answer = 0).count(),
+			'option2': answers.filter(answer = 1).count(),
+			'option3': answers.filter(answer = 2).count(),
+			'option4': answers.filter(answer = 3).count(),
+			'option5': answers.filter(answer = 4).count()
+		}
 		return rep
 
 	def to_internal_value(self, data):
