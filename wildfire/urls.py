@@ -17,8 +17,8 @@ urlpatterns = [
 	url(r'^answers/update/(?P<pk>[0-9]+)/$', views.answer_update),
 	url(r'^answers/create/$', views.answer_create),
 	url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-	url(r'^login/$', views.login, name='authenticate'),
-	url(r'^logout/$', views.logout),
+	url(r'^login/$', views.wild_login, name='authenticate'),
+	url(r'^logout/$', views.wild_logout),
 	
 	url(r'^stats/(?P<pk>[0-9]+)/$', views.stats),
 ]

@@ -184,7 +184,7 @@ def stats(request, pk):
 		return JSONResponse(serializer.data)
 
 @csrf_exempt
-def login(request):
+def wild_login(request):
 	auth_user = authenticate(username=request.POST['username'], password=request.POST['password'])
 	if auth_user is not None:
 		if auth_user.is_active:
@@ -195,6 +195,6 @@ def login(request):
 	return Response(status=404)
 
 @csrf_exempt
-def logout(request):
+def wild_logout(request):
 	logout(request)
 	return Response({})
