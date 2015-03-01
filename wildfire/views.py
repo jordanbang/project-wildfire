@@ -183,19 +183,18 @@ def stats(request, pk):
 		serializer = StatsSerializer(question)
 		return JSONResponse(serializer.data)
 
-# Authorization view
 @csrf_exempt
-class AuthView(APIView):
-	def post(self, request, *args, **kwargs):
-		auth_user = authenticate(username=request.POST['username'], password=request.POST['password'])
-		if auth_user is not None:
-			if auth_user.is_active:
-				login(request, auth_user)
-				return Response(UserSerializer(auth_user).data)
-			else:
-				return Response(status=403)
-		return Response(status=404)
+def login(request):
+	auth_user = authenticate(username=request.POST['username'], password=request.POST['password'])
+	if auth_user is not None:
+		if auth_user.is_active:
+			login(request, auth_user)
+			return Response(UserSerializer(auth_user).data)
+		else:
+			return Response(status=403)
+	return Response(status=404)
 
-	def delete(self, request, *args, **kwargs):
-		logout(request)
-		return Response({})
+@csrf_exempt
+def logout(request):
+	logout(request)
+	return Response({})
