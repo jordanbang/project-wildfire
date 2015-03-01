@@ -3,10 +3,10 @@ from django.contrib.auth.models import User
 
 from rest_framework import serializers
 
-from wildfire.models import UserProfile, Question, Answer
+from wildfire.models import UserProfile, Question, Answer, Category
 from wildfire.models import GENDER_CHOICES, QUESTION_TYPE_CHOICE
 
-from question_options import to_array, to_columns
+from wildfire.question_serializer_helper import to_array, to_columns, get_quick_stats
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -65,7 +65,7 @@ class AnswerSerializer(serializers.ModelSerializer):
 
 class QuestionSerializer(serializers.ModelSerializer):
 	asker = UserProfileSerializer(many=False)
-	categories = serializers.StringRelatedField(many=True, read_only=True)
+	categories = serializers.StringRelatedField(many=True, required=False)
 	answers = AnswerSerializer(many=True, read_only=True)
 
 	class Meta:
@@ -83,8 +83,20 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 		#For now, isAnswered will be a global field, just returning if the question has been answered.
 		answers = rep['answers']
-		rep['isAnswered'] = len(answers) > 0
-		
+		request = self.context.get('request', None)
+		if request and request.user.is_authenticated():
+			rep['isUser'] = True
+			rep['user'] = request.user.first_name
+			for answer in answers:
+				if answer['user'] == request.user.profile.id:
+					rep['isAnswered'] = True
+					rep['usersAnswer'] = answer
+					break
+				else:
+					rep['isAnswered'] = False
+		else:
+			rep['isUser'] = False
+
 		answers = Answer.objects.filter(question=rep['id'])
 		rep['quick'] = {
 			'option1': answers.filter(answer = 0).count(),
@@ -100,8 +112,11 @@ class QuestionSerializer(serializers.ModelSerializer):
 		if asker_id != None:
 			asker = UserProfile.objects.get(pk=asker_id)
 			data['asker'] = UserProfileSerializer(asker).data
-		data = to_columns(data)			
-		return super(serializers.ModelSerializer, self).to_internal_value(data)
+		data = to_columns(data)
+		categories = data.pop('categories')			
+		data = super(serializers.ModelSerializer, self).to_internal_value(data)
+		data['categories'] = categories
+		return data
 
 	def create(self, validated_data):
 		asker = validated_data.pop('asker', None)
@@ -110,6 +125,26 @@ class QuestionSerializer(serializers.ModelSerializer):
 		question = Question.objects.create(asker=asker, **validated_data)
 		question.save()
 		return question
+
+
+	def update(self, instance, validated_data):
+		categories = validated_data.pop('categories')
+
+		instance.text = validated_data.get('text', instance.text)
+		instance.questionType = validated_data.get('questionType', instance.questionType)
+		instance.option1 = validated_data.get('option1', instance.option1)
+		instance.option2 = validated_data.get('option2', instance.option2)
+		instance.option3 = validated_data.get('option3', instance.option3)
+		instance.option4 = validated_data.get('option4', instance.option4)
+		instance.option5 = validated_data.get('option5', instance.option5)
+		instance.save()
+
+		for category in categories:
+			catModel = Category.objects.create(category=category)
+			catModel.save()
+			catModel.question.add(instance)
+
+		return instance
 		
 class StatsSerializer(serializers.BaseSerializer):
 	def to_representation(self, obj):

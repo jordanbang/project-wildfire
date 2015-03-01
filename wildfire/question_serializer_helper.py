@@ -1,3 +1,4 @@
+from wildfire.models import Answer
 
 def to_array(rep):
 	options = []
@@ -26,3 +27,13 @@ def to_columns(data):
 			for i in xrange(1,6):
 				data['option' + str(i)] = options[i-1]
 	return data
+
+def get_quick_stats(question_id):
+	answers = Answer.objects.filter(question=question_id)
+	return 	{
+				'option1': answers.filter(answer = 0).count(),
+				'option2': answers.filter(answer = 1).count(),
+				'option3': answers.filter(answer = 2).count(),
+				'option4': answers.filter(answer = 3).count(),
+				'option5': answers.filter(answer = 4).count()
+			}

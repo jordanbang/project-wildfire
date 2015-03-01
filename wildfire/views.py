@@ -88,7 +88,7 @@ def user_create(request):
 def question_list(request):
 	if request.method == 'GET':
 		questions = Question.objects.all().order_by('-date')
-		serializer = QuestionSerializer(questions, many=True)
+		serializer = QuestionSerializer(questions, many=True, context={'request':request})
 		return JSONResponse(serializer.data)
 
 @csrf_exempt
@@ -99,7 +99,7 @@ def question_detail(request, pk):
 		return HttpResponse(status=404)
 
 	if request.method == 'GET':
-		serializer = QuestionSerializer(question)
+		serializer = QuestionSerializer(question, context={'request':request})
 		return JSONResponse(serializer.data)
 
 @csrf_exempt	
@@ -111,7 +111,7 @@ def question_update(request, pk):
 
 	if request.method == 'POST':
 		data = JSONParser().parse(request)
-		serializer = QuestionSerializer(question, data=data, partial=True)
+		serializer = QuestionSerializer(question, data=data, partial=True, context={'request':request})
 		if serializer.is_valid():
 			serializer.save()
 			return JSONResponse(serializer.data)
@@ -121,7 +121,7 @@ def question_update(request, pk):
 def question_create(request):
 	if request.method == 'POST':
 		data = JSONParser().parse(request)
-		serializer = QuestionSerializer(data=data)
+		serializer = QuestionSerializer(data=data, context={'request':request})
 		if serializer.is_valid():
 			new_question = serializer.save()
 			return JSONResponse(serializer.data)

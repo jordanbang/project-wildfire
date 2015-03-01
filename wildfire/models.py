@@ -52,6 +52,9 @@ class Category(models.Model):
 	question = models.ManyToManyField(Question, related_name='categories')
 	category = models.CharField(max_length = 20)
 
+	# class Meta:
+	# 	unique_together = ('question', 'category')
+
 	def __unicode__(self):
 		return self.category
 
@@ -59,3 +62,6 @@ class Answer(models.Model):
 	user = models.ForeignKey(UserProfile)
 	question = models.ForeignKey(Question, related_name='answers')
 	answer = models.IntegerField(default=1)
+
+	class Meta:
+		unique_together = ('question', 'user')
