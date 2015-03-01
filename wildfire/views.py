@@ -184,6 +184,7 @@ def stats(request, pk):
 		return JSONResponse(serializer.data)
 
 # Authorization view
+@csrf_exempt
 class AuthView(APIView):
 	def post(self, request, *args, **kwargs):
 		auth_user = authenticate(username=request.POST['username'], password=request.POST['password'])
