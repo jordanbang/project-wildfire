@@ -189,7 +189,7 @@ def wild_login(request):
 	if auth_user is not None:
 		if auth_user.is_active:
 			login(request, auth_user)
-			return JSONResponse(UserSerializer(auth_user).data)
+			return JSONResponse(UserProfileSerializer(auth_user.profile).data)
 		else:
 			return JSONResponse(status=403)
 	return JSONResponse(status=404)
