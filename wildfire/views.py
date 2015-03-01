@@ -17,6 +17,7 @@ from rest_framework.authentication import SessionAuthentication
 from wildfire.models import UserProfile, Question, Answer
 from wildfire.serializers import UserSerializer, UserProfileSerializer, QuestionSerializer
 from wildfire.serializers import AnswerSerializer, StatsSerializer
+from wildfire.permissions import isOwnerOrReadOnly
 
 # Create your views here.
 class JSONResponse(HttpResponse):
@@ -41,6 +42,7 @@ def user_list(request):
 
 @api_view(['GET', 'POST'])
 @csrf_exempt
+@permission_classes((isOwnerOrReadOnly, IsAuthenticatedOrReadOnly))
 def user_detail(request, pk):
 	try:
 		user = UserProfile.objects.get(pk=pk)
@@ -65,7 +67,6 @@ def user_detail(request, pk):
 		
 @api_view(['POST'])
 @csrf_exempt
-@login_required
 def user_create(request):
 	data = JSONParser().parse(request)
 	errors = dict()
@@ -76,6 +77,8 @@ def user_create(request):
 		
 		if userProfileSerializer.is_valid():
 			userProfileSerializer.save()
+
+		#TODO: should log the user in at this point
 		return JSONResponse(userProfileSerializer.data)
 		errors.update(userProfileSerializer.errors)
 	else:
@@ -103,6 +106,7 @@ def question_detail(request, pk):
 		return JSONResponse(serializer.data)
 
 @csrf_exempt	
+@permission_classes((isOwnerOrReadOnly, IsAuthenticatedOrReadOnly))	
 def question_update(request, pk):
 	try:
 		question = Question.objects.get(pk=pk)
@@ -147,6 +151,7 @@ def answer_detail(request, pk):
 		return JSONResponse(serializer.data)
 
 @csrf_exempt
+@permission_classes((isOwnerOrReadOnly))
 def answer_update(request, pk):
 	try:
 		answer = Answer.objects.get(pk=pk)
