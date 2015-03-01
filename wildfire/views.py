@@ -189,12 +189,12 @@ def wild_login(request):
 	if auth_user is not None:
 		if auth_user.is_active:
 			login(request, auth_user)
-			return Response(UserSerializer(auth_user).data)
+			return JSONResponse(UserSerializer(auth_user).data)
 		else:
-			return Response(status=403)
-	return Response(status=404)
+			return JSONResponse(status=403)
+	return JSONResponse(status=404)
 
 @csrf_exempt
 def wild_logout(request):
 	logout(request)
-	return Response({})
+	return JSONResponse({})
