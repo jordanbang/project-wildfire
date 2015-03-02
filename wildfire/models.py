@@ -63,5 +63,5 @@ class Answer(models.Model):
 	question = models.ForeignKey(Question, related_name='answers')
 	answer = models.IntegerField(default=1)
 
-	class Meta:
-		unique_together = ('question', 'user')
+	# class Meta:
+	# 	unique_together = ('question', 'user')

@@ -78,9 +78,6 @@ class QuestionSerializer(serializers.ModelSerializer):
 		rep = super(serializers.ModelSerializer, self).to_representation(obj)
 		rep['options'] = to_array(rep)
 
-		#For now, always assume that the person requesting info is a (validated) user
-		rep['isUser'] = True
-
 		#For now, isAnswered will be a global field, just returning if the question has been answered.
 		answers = rep['answers']
 		request = self.context.get('request', None)
