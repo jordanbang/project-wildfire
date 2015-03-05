@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
+from django.core.exceptions import ValidationError
 
 GENDER_CHOICES = (('M', 'Male'), 
 				('F', 'Female'),)
@@ -65,3 +66,26 @@ class Answer(models.Model):
 
 	# class Meta:
 	# 	unique_together = ('question', 'user')
+
+class Connected(models.Model):
+	user1 = models.ForeignKey(UserProfile, related_name="%(class)s_1")
+	user2 = models.ForeignKey(UserProfile, related_name="%(class)s_2")
+
+	class Meta:
+		unique_together = ('user1', 'user2')
+
+	def save(self, *args, **kwargs):
+		#calling full_clean to perform model validation
+		self.full_clean()
+		super(Connected, self).save(*args, **kwargs)
+
+	def clean(self):
+		if self.user1 == self.user2:
+			raise ValidationError('Connected: user1 should not equal user2')
+
+		#For ease and so that no duplicates of the form AB or BA appear
+		#always have user1 be the lower user id of the two
+		if self.user1 > self.user2:
+			tmp = self.user1
+			self.user1 = self.user2
+			self.user2 = tmp

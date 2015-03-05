@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
 
-from wildfire.models import UserProfile, Question, Category, Answer
+from wildfire.models import UserProfile, Question, Category, Answer, Connected
 # Register your models here.
 
 class UserProfileInline(admin.StackedInline):
@@ -20,3 +20,4 @@ admin.site.register(User, UserAdmin)
 admin.site.register(Question)
 admin.site.register(Category)
 admin.site.register(Answer)
+admin.site.register(Connected)
