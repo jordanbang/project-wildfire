@@ -147,7 +147,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 class StatsSerializer(serializers.BaseSerializer):
 	def to_representation(self, obj):
 		answers = Answer.objects.filter(question=obj.pk)
-		answers.values(user__region).annotate(region_count=Count(user__region))
+		Answer.objects.values(user__region).annotate(region_count=Count(user__region))
 		return{
 			'quick':{
 				'option1': answers.filter(answer = 0).count(),
