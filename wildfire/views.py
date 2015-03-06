@@ -27,9 +27,10 @@ class JSONResponse(HttpResponse):
 		super(JSONResponse, self).__init__(content, **kwargs)
 
 #Helper functions
+#Call this function before returning a json response
 def add_user(data, request):
 	user = request.user
-	if user:
+	if not user.is_anonymous():
 		user_data = UserProfileSerializer(user.profile).data
 	else:
 		user_data = "Anonymous"
@@ -231,20 +232,26 @@ def wild_logout(request):
 
 @csrf_exempt
 @permission_classes((IsAuthenticated,))
-def profile(request):
+def profile(request, pk):
 	try:
-		user = request.user.profile
+		user = UserProfile.objects.get(pk=pk)
 	except UserProfile.DoesNotExist:
 		return HttpResponse(status=404)
 
 	if request.method == 'GET':
+		user_data = UserProfileSerializer(user).data
+
 		users_questions = Question.objects.filter(asker=user)
 		questions_data = QuestionSerializer(users_questions, many=True).data
 
-		connections = Connected.objects.filter(user1=user) | Connected.objects.filter(user2=user)
-		connections_data = ConnectionSerializer(connections, many=True, context={'user':user.id}).data
+		connections1 = Connected.objects.filter(user1=user).values_list('user2', flat=True) 
+		connections2 = Connected.objects.filter(user2=user).values_list('user1', flat=True)
+		connections_as_user = UserProfile.objects.filter(id__in=connections1) | UserProfile.objects.filter(id__in=connections2)
+		
+		connections_data = UserProfileSerializer(connections_as_user, many=True).data
 
 		ret = dict()
+		ret['user'] = user_data
 		ret['questions'] = questions_data
 		ret['connections'] = connections_data
 

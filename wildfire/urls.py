@@ -23,5 +23,5 @@ urlpatterns = [
 	
 	url(r'^stats/(?P<pk>[0-9]+)/$', views.stats),
 
-	url(r'^profile/$', views.profile),
+	url(r'^profile/(?P<pk>[0-9]+)/$', views.profile),
 ]
