@@ -4,7 +4,7 @@ from django.db.models import Count
 
 from rest_framework import serializers
 
-from wildfire.models import UserProfile, Question, Answer, Category
+from wildfire.models import UserProfile, Question, Answer, Category, Connected
 from wildfire.models import GENDER_CHOICES, QUESTION_TYPE_CHOICE
 
 from wildfire.question_serializer_helper import to_array, to_columns, get_quick_stats
@@ -84,7 +84,6 @@ class QuestionSerializer(serializers.ModelSerializer):
 		request = self.context.get('request', None)
 		if request and request.user.is_authenticated():
 			rep['isUser'] = True
-			rep['user'] = request.user.first_name
 			for answer in answers:
 				if answer['user'] == request.user.profile.id:
 					rep['isAnswered'] = True
@@ -172,3 +171,25 @@ class StatsSerializer(serializers.BaseSerializer):
 			},
 			'region': regionStats
 		}
+
+class ConnectionSerializer(serializers.ModelSerializer):
+	user1 = UserProfileSerializer(many=False)
+	user2 = UserProfileSerializer(many=False)
+
+	class Meta:
+		model = Connected
+		fields = ('user1', 'user2')
+
+	def to_representation(self, obj):
+		rep = super(serializers.ModelSerializer, self).to_representation(obj)
+		
+		user_id = self.context.get('user')
+		if user_id:
+			if rep['user1']['id'] == user_id:
+				rep.pop('user1')
+				rep['connection'] = rep.pop('user2')
+			elif rep['user2']['id'] == user_id:
+				rep.pop('user2')
+				rep['connection'] = rep.pop('user1')
+			rep['user'] = user_id	
+		return rep
