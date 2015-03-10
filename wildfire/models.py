@@ -79,13 +79,26 @@ class Connected(models.Model):
 		self.full_clean()
 		super(Connected, self).save(*args, **kwargs)
 
+		connections = Connected.objects.filter(user1=self.user2, user2=self.user1)
+		if connections.count() == 0:
+			connection = Connected(user1=self.user2, user2=self.user1)
+			connection.save()
+
 	def clean(self):
 		if self.user1 == self.user2:
 			raise ValidationError('Connected: user1 should not equal user2')
 
-		#For ease and so that no duplicates of the form AB or BA appear
-		#always have user1 be the lower user id of the two
-		if self.user1 > self.user2:
-			tmp = self.user1
-			self.user1 = self.user2
-			self.user2 = tmp
+
+class TargetedQuestion(models.Model):
+	user = models.ForeignKey(UserProfile)
+	question = models.ForeignKey(Question)
+
+	class Meta:
+		unique_together = ('user', 'question')
+
+	def save(self, *args, **kwargs):
+		#Don't target a user with a question if they have already answered the question
+		answers = Answer.objects.filter(user=self.user, question = self.question)
+		if answers.count() > 0:
+			return
+		super(TargetedQuestion, self).save(*args, **kwargs)

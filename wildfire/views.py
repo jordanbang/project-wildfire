@@ -14,10 +14,12 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.authentication import SessionAuthentication
 
-from wildfire.models import UserProfile, Question, Answer, Connected
+from wildfire.models import UserProfile, Question, Answer, Connected, TargetedQuestion
 from wildfire.serializers import UserSerializer, UserProfileSerializer, QuestionSerializer
 from wildfire.serializers import AnswerSerializer, StatsSerializer, ConnectionSerializer
 from wildfire.permissions import isOwnerOrReadOnly
+
+from wildfire.targeted_question_helper import target_from_answer, target_from_question
 
 # Create your views here.
 class JSONResponse(HttpResponse):
@@ -105,9 +107,23 @@ def user_create(request):
 @csrf_exempt
 def question_list(request):
 	if request.method == 'GET':
-		questions = Question.objects.all().order_by('-date')
+		ret = dict()
+		user = request.user
+		usersQuestions = None
+		if user.is_anonymous():
+			ret['usersQuestions'] = [];
+		else:
+			usersQuestions = TargetedQuestion.objects.filter(user=user.profile).values_list('question', flat=True)
+			userQuestionObj = Question.objects.filter(id__in=usersQuestions)
+			userQuestions_serializer = QuestionSerializer(userQuestionObj, many=True, context={'request':request})
+			ret['userQuestions'] = userQuestions_serializer.data			
+
+		questions = Question.objects.all().order_by('-date').exclude(id__in=[18])
+		if usersQuestions:
+			questions = Question.objects.all().order_by('-date').exclude(id__in=usersQuestions)	
 		serializer = QuestionSerializer(questions, many=True, context={'request':request})
-		return JSONResponse(add_user(serializer.data, request))
+		ret['popularQuestions'] = serializer.data
+		return JSONResponse(add_user(ret, request))
 
 @csrf_exempt
 def question_detail(request, pk):
@@ -143,6 +159,7 @@ def question_create(request):
 		serializer = QuestionSerializer(data=data, context={'request':request})
 		if serializer.is_valid():
 			new_question = serializer.save()
+			target_from_question(new_question)
 			return JSONResponse(add_user(serializer.data, request))
 		return JSONResponse(serializer.errors, status=400)
 
@@ -189,6 +206,8 @@ def answer_create(request):
 		if serializer.is_valid():
 			answer = serializer.save()
 			questionSerializer = QuestionSerializer(answer.question, context={'request':request})
+			target_from_answer(answer)
+			TargetedQuestion.objects.filter(user=answer.user, question=answer.question).delete()
 			return JSONResponse(add_user(questionSerializer.data, request))
 		return JSONResponse(serializer.errors, status=400)
 
@@ -225,11 +244,6 @@ def wild_logout(request):
 
 
 #/profile endpoint
-
-#Have to be logged in to view profile
-#Profile will return the user information (in the outer user object), their questions
-#(in the inner response object) and their connections (in the inner response object)
-
 @csrf_exempt
 @permission_classes((IsAuthenticated,))
 def profile(request, pk):
@@ -245,9 +259,7 @@ def profile(request, pk):
 		questions_data = QuestionSerializer(users_questions, many=True).data
 
 		connections1 = Connected.objects.filter(user1=user).values_list('user2', flat=True) 
-		connections2 = Connected.objects.filter(user2=user).values_list('user1', flat=True)
-		connections_as_user = UserProfile.objects.filter(id__in=connections1) | UserProfile.objects.filter(id__in=connections2)
-		
+		connections_as_user = UserProfile.objects.filter(id__in=connections1)
 		connections_data = UserProfileSerializer(connections_as_user, many=True).data
 
 		ret = dict()

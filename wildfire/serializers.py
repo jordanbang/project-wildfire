@@ -110,22 +110,30 @@ class QuestionSerializer(serializers.ModelSerializer):
 			asker = UserProfile.objects.get(pk=asker_id)
 			data['asker'] = UserProfileSerializer(asker).data
 		data = to_columns(data)
-		categories = data.pop('categories')			
+		categories = data.pop('categories', None)			
 		data = super(serializers.ModelSerializer, self).to_internal_value(data)
-		data['categories'] = categories
+		if categories:
+			data['categories'] = categories
 		return data
 
 	def create(self, validated_data):
+		categories = validated_data.pop('categories', None)
 		asker = validated_data.pop('asker', None)
 		if asker != None:
 			asker = UserProfile.objects.get(pk=asker.pop('id'))
 		question = Question.objects.create(asker=asker, **validated_data)
 		question.save()
+
+		if categories:
+			for category in categories:
+				catModel = Category.objects.create(category=category)
+				catModel.save()
+				catModel.question.add(instance)
 		return question
 
 
 	def update(self, instance, validated_data):
-		categories = validated_data.pop('categories')
+		categories = validated_data.pop('categories', None)
 
 		instance.text = validated_data.get('text', instance.text)
 		instance.questionType = validated_data.get('questionType', instance.questionType)
