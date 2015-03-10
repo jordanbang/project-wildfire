@@ -38,7 +38,7 @@ def add_user(data, request):
 	if not user.is_anonymous():
 		user_data = UserProfileSerializer(user.profile).data
 	else:
-		user_data = "Anonymous"
+		user_data = None
 	
 	ret = dict()
 	ret['user'] = user_data
