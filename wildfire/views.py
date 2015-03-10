@@ -12,7 +12,10 @@ from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
-from rest_framework.authentication import SessionAuthentication
+from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
 from wildfire.models import UserProfile, Question, Answer, Connected, TargetedQuestion
 from wildfire.serializers import UserSerializer, UserProfileSerializer, QuestionSerializer
@@ -48,6 +51,7 @@ def add_user(data, request):
 @csrf_exempt
 @permission_classes((IsAuthenticated,))
 def user_list(request):
+	print(request.user)
 	if request.method == 'GET':
 		users = UserProfile.objects.all()
 		if request.user.is_authenticated():
@@ -106,6 +110,8 @@ def user_create(request):
 # /question Endpoints
 @csrf_exempt
 def question_list(request):
+	print(request.user)
+	print(request.auth)
 	if request.method == 'GET':
 		ret = dict()
 		user = request.user
@@ -224,17 +230,32 @@ def stats(request, pk):
 		return JSONResponse(add_user(serializer.data, request))
 
 
-#user login and logout
+class GetAuthToken(ObtainAuthToken):
+	def post(self, request):
+		serializer = AuthTokenSerializer(data=request.data)
+		if serializer.is_valid():
+			user = serializer.validated_data['user']
+			token, created = Token.objects.get_or_create(user=user)
+			
+			data = UserProfileSerializer(user.profile).data
+			data['token'] = token.key
+			return JSONResponse(data)
+		return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @csrf_exempt
 def wild_login(request):
 	auth_user = authenticate(username=request.POST['username'], password=request.POST['password'])
 	if auth_user is not None:
 		if auth_user.is_active:
 			login(request, auth_user)
-			return JSONResponse(UserProfileSerializer(auth_user.profile).data)
+			data = UserProfileSerializer(auth_user.profile).data
+			token = Token.objects.get_or_create(user=auth_user)
+			data['token'] = AuthTokenSerializer(token).data
+			return JSONResponse(data)
 		else:
-			return JSONResponse({"error":"User is not active"}, status=403)
-	return JSONResponse({"error":"User not found"}, status=404)
+			return JSONResponse(status=403)
+	return JSONResponse(status=404)
 
 @csrf_exempt
 def wild_logout(request):
