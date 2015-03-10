@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpRequest
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
@@ -49,7 +49,7 @@ def add_user(data, request):
 # /user Endpoints
 @api_view(['GET'])
 @csrf_exempt
-@permission_classes((IsAuthenticated,))
+#@permission_classes((IsAuthenticated,))
 def user_list(request):
 	print(request.user)
 	if request.method == 'GET':
@@ -63,7 +63,7 @@ def user_list(request):
 
 @api_view(['GET', 'POST'])
 @csrf_exempt
-@permission_classes((isOwnerOrReadOnly, IsAuthenticatedOrReadOnly))
+#@permission_classes((isOwnerOrReadOnly, IsAuthenticatedOrReadOnly))
 def user_detail(request, pk):
 	try:
 		user = UserProfile.objects.get(pk=pk)
@@ -109,8 +109,11 @@ def user_create(request):
 
 # /question Endpoints
 @csrf_exempt
+@api_view(['GET'])
 def question_list(request):
 	print(request.user)
+
+	# print("Request has auth header: " + str(request.has_header("Authorization")))
 	# print(request.auth)
 	if request.method == 'GET':
 		ret = dict()
@@ -143,7 +146,7 @@ def question_detail(request, pk):
 		return JSONResponse(add_user(serializer.data, request))
 
 @csrf_exempt	
-@permission_classes((isOwnerOrReadOnly, IsAuthenticatedOrReadOnly))	
+#@permission_classes((isOwnerOrReadOnly, IsAuthenticatedOrReadOnly))	
 def question_update(request, pk):
 	try:
 		question = Question.objects.get(pk=pk)
@@ -189,7 +192,7 @@ def answer_detail(request, pk):
 		return JSONResponse(add_user(serializer.data, request))
 
 @csrf_exempt
-@permission_classes((isOwnerOrReadOnly))
+#@permission_classes((isOwnerOrReadOnly))
 def answer_update(request, pk):
 	try:
 		answer = Answer.objects.get(pk=pk)
@@ -266,7 +269,7 @@ def wild_logout(request):
 
 #/profile endpoint
 @csrf_exempt
-@permission_classes((IsAuthenticated,))
+#@permission_classes((IsAuthenticated,))
 def profile(request, pk):
 	try:
 		user = UserProfile.objects.get(pk=pk)
