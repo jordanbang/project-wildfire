@@ -1,6 +1,6 @@
 from django.forms import widgets
 from django.contrib.auth.models import User
-from django.db.models import Count
+from django.db.models import Avg, Count
 
 from rest_framework import serializers
 
@@ -146,31 +146,51 @@ class QuestionSerializer(serializers.ModelSerializer):
 class StatsSerializer(serializers.BaseSerializer):
 	def to_representation(self, obj):
 		answers = Answer.objects.filter(question=obj.pk)
-		regionStats = answers.values('user__region').annotate(Count('user__region'))
-		return{
-			'quick':{
-				'option1': answers.filter(answer = 0).count(),
-				'option2': answers.filter(answer = 1).count(),
-				'option3': answers.filter(answer = 2).count(),
-				'option4': answers.filter(answer = 3).count(),
-				'option5': answers.filter(answer = 4).count()
-			},
-			'male':{
-				'option1': answers.filter(answer = 0,user__gender = "M").count(),
-				'option2': answers.filter(answer = 1,user__gender = "M").count(),
-				'option3': answers.filter(answer = 2,user__gender = "M").count(),
-				'option4': answers.filter(answer = 3,user__gender = "M").count(),
-				'option5': answers.filter(answer = 4,user__gender = "M").count()
-			},
-			'female':{
-				'option1': answers.filter(answer = 0,user__gender = "F").count(),
-				'option2': answers.filter(answer = 1,user__gender = "F").count(),
-				'option3': answers.filter(answer = 2,user__gender = "F").count(),
-				'option4': answers.filter(answer = 3,user__gender = "F").count(),
-				'option5': answers.filter(answer = 4,user__gender = "F").count()
-			},
-			'region': regionStats
-		}
+		if obj.questionType == 'RG':
+			return{
+				'avg': answers.values('answer').aggregate(Avg('answer')).get('answer__avg'),
+				'male': answers.filter(user__gender = "M").values('answer').aggregate(Avg('answer')).get('answer__avg'),
+				'female': answers.filter(user__gender = "F").values('answer').aggregate(Avg('answer')).get('answer__avg'),
+				'region': answers.values('user__region').annotate(Avg('answer'))
+			}
+		else:
+			regionStats = answers.values('user__region').annotate(Count('user__region'))
+			region1 = answers.filter(answer = 0).values('user__region').annotate(Count('user__region'))
+			region2 = answers.filter(answer = 1).values('user__region').annotate(Count('user__region'))
+			region3 = answers.filter(answer = 2).values('user__region').annotate(Count('user__region'))
+			region4 = answers.filter(answer = 3).values('user__region').annotate(Count('user__region'))
+			region5 = answers.filter(answer = 4).values('user__region').annotate(Count('user__region'))
+			return{
+				'quick':{
+					'option1': answers.filter(answer = 0).count(),
+					'option2': answers.filter(answer = 1).count(),
+					'option3': answers.filter(answer = 2).count(),
+					'option4': answers.filter(answer = 3).count(),
+					'option5': answers.filter(answer = 4).count()
+				},
+				'male':{
+					'option1': answers.filter(answer = 0,user__gender = "M").count(),
+					'option2': answers.filter(answer = 1,user__gender = "M").count(),
+					'option3': answers.filter(answer = 2,user__gender = "M").count(),
+					'option4': answers.filter(answer = 3,user__gender = "M").count(),
+					'option5': answers.filter(answer = 4,user__gender = "M").count()
+				},
+				'female':{
+					'option1': answers.filter(answer = 0,user__gender = "F").count(),
+					'option2': answers.filter(answer = 1,user__gender = "F").count(),
+					'option3': answers.filter(answer = 2,user__gender = "F").count(),
+					'option4': answers.filter(answer = 3,user__gender = "F").count(),
+					'option5': answers.filter(answer = 4,user__gender = "F").count()
+				},
+				'region':{
+					'regionTotal': regionStats,
+					'option1': region1,
+					'option2': region2,
+					'option3': region3,
+					'option4': region4,
+					'option5': region5
+				}
+			}
 
 class ConnectionSerializer(serializers.ModelSerializer):
 	user1 = UserProfileSerializer(many=False)
