@@ -15,7 +15,7 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.serializers import AuthTokenSerializer
-from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+from rest_framework.authentication import TokenAuthentication
 
 from wildfire.models import UserProfile, Question, Answer, Connected, TargetedQuestion
 from wildfire.serializers import UserSerializer, UserProfileSerializer, QuestionSerializer
@@ -111,7 +111,7 @@ def user_create(request):
 @csrf_exempt
 def question_list(request):
 	print(request.user)
-	print(request.auth)
+	# print(request.auth)
 	if request.method == 'GET':
 		ret = dict()
 		user = request.user
