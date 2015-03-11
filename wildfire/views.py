@@ -293,3 +293,13 @@ def profile(request, pk):
 
 		return JSONResponse(add_user(ret, request))
 
+@api_view(['POST'])
+@csrf_exempt
+def connect(request):
+	data = JSONParser().parse(request)
+	serializer = ConnectionSerializer(data=data)
+	if serializer.is_valid():
+		connection = serializer.save()
+		return JSONResponse(add_user(serializer.data, request))
+	return JSONResponse(serializer.errors, status=400)
+

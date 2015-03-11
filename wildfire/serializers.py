@@ -201,23 +201,9 @@ class StatsSerializer(serializers.BaseSerializer):
 			}
 
 class ConnectionSerializer(serializers.ModelSerializer):
-	user1 = UserProfileSerializer(many=False)
-	user2 = UserProfileSerializer(many=False)
+	user1 = serializers.PrimaryKeyRelatedField(queryset=UserProfile.objects.all())
+	user2 = serializers.PrimaryKeyRelatedField(queryset=UserProfile.objects.all())
 
 	class Meta:
 		model = Connected
 		fields = ('user1', 'user2')
-
-	def to_representation(self, obj):
-		rep = super(serializers.ModelSerializer, self).to_representation(obj)
-		
-		user_id = self.context.get('user')
-		if user_id:
-			if rep['user1']['id'] == user_id:
-				rep.pop('user1')
-				rep['connection'] = rep.pop('user2')
-			elif rep['user2']['id'] == user_id:
-				rep.pop('user2')
-				rep['connection'] = rep.pop('user1')
-			rep['user'] = user_id	
-		return rep

@@ -79,11 +79,6 @@ class Connected(models.Model):
 		self.full_clean()
 		super(Connected, self).save(*args, **kwargs)
 
-		connections = Connected.objects.filter(user1=self.user2, user2=self.user1)
-		if connections.count() == 0:
-			connection = Connected(user1=self.user2, user2=self.user1)
-			connection.save()
-
 	def clean(self):
 		if self.user1 == self.user2:
 			raise ValidationError('Connected: user1 should not equal user2')
