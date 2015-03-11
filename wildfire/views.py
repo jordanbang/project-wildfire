@@ -36,8 +36,10 @@ class JSONResponse(HttpResponse):
 def add_user(data, request):
 	user = request.user
 	if not user.is_anonymous():
+		print("User is authenticated " + request.user.username)
 		user_data = UserProfileSerializer(user.profile).data
 	else:
+		print("User is not authenticated")
 		user_data = None
 	
 	ret = dict()
@@ -135,6 +137,7 @@ def question_list(request):
 		return JSONResponse(add_user(ret, request))
 
 @csrf_exempt
+@api_view(['GET'])
 def question_detail(request, pk):
 	try:
 		question = Question.objects.get(pk=pk)
@@ -145,7 +148,8 @@ def question_detail(request, pk):
 		serializer = QuestionSerializer(question, context={'request':request})
 		return JSONResponse(add_user(serializer.data, request))
 
-@csrf_exempt	
+@csrf_exempt
+@api_view(['POST'])	
 #@permission_classes((isOwnerOrReadOnly, IsAuthenticatedOrReadOnly))	
 def question_update(request, pk):
 	try:
@@ -162,6 +166,7 @@ def question_update(request, pk):
 		return JSONResponse(serializer.errors, status=400)
 
 @csrf_exempt
+@api_view(['POST'])
 def question_create(request):
 	if request.method == 'POST':
 		data = JSONParser().parse(request)
@@ -172,7 +177,8 @@ def question_create(request):
 			return JSONResponse(add_user(serializer.data, request))
 		return JSONResponse(serializer.errors, status=400)
 
-@csrf_exempt		
+@csrf_exempt
+@api_view(['GET'])		
 #/answers endpoints
 def answer_list(request):
 	if request.method == 'GET':
@@ -180,7 +186,8 @@ def answer_list(request):
 		serializer = AnswerSerializer(answers, many=True)
 		return JSONResponse(add_user(serializer.data, request))
 
-@csrf_exempt		
+@csrf_exempt
+@api_view(['GET'])		
 def answer_detail(request, pk):
 	try:
 		answer = Answer.objects.get(pk=pk)
@@ -192,6 +199,7 @@ def answer_detail(request, pk):
 		return JSONResponse(add_user(serializer.data, request))
 
 @csrf_exempt
+@api_view(['POST'])
 #@permission_classes((isOwnerOrReadOnly))
 def answer_update(request, pk):
 	try:
@@ -207,7 +215,8 @@ def answer_update(request, pk):
 			return JSONResponse(add_user(serializer.data, request))
 		return JSONResponse(serializer.errors, status=400)
 
-@csrf_exempt		
+@csrf_exempt
+@api_view(['POST'])		
 def answer_create(request):
 	if request.method =='POST':
 		data = JSONParser().parse(request)
@@ -222,6 +231,7 @@ def answer_create(request):
 
 #/stats endpoints
 @csrf_exempt
+@api_view(['GET'])
 def stats(request, pk):
 	try:
 		question = Question.objects.get(pk=pk)
@@ -247,20 +257,6 @@ class GetAuthToken(ObtainAuthToken):
 
 
 @csrf_exempt
-def wild_login(request):
-	auth_user = authenticate(username=request.POST['username'], password=request.POST['password'])
-	if auth_user is not None:
-		if auth_user.is_active:
-			login(request, auth_user)
-			data = UserProfileSerializer(auth_user.profile).data
-			token = Token.objects.get_or_create(user=auth_user)
-			data['token'] = AuthTokenSerializer(token).data
-			return JSONResponse(data)
-		else:
-			return JSONResponse(status=403)
-	return JSONResponse(status=404)
-
-@csrf_exempt
 def wild_logout(request):
 	logout(request)
 	return JSONResponse({})
@@ -268,6 +264,7 @@ def wild_logout(request):
 
 
 #/profile endpoint
+@api_view(['GET'])
 @csrf_exempt
 #@permission_classes((IsAuthenticated,))
 def profile(request, pk):
@@ -290,6 +287,9 @@ def profile(request, pk):
 		ret['user'] = user_data
 		ret['questions'] = questions_data
 		ret['connections'] = connections_data
+		ret['numQuestionsAsked'] = Question.objects.filter(asker=user).count()
+		ret['numQuestionsAnswered'] = Answer.objects.filter(user=user).count()
+		ret['numConnections'] = Connected.objects.filter(user1=user).count()
 
 		return JSONResponse(add_user(ret, request))
 
