@@ -130,8 +130,8 @@ def question_list(request):
 			ret['userQuestions'] = userQuestions_serializer.data			
 
 		questions = Question.objects.all().order_by('-date').exclude(id__in=[18])
-		if usersQuestions:
-			questions = Question.objects.all().order_by('-date').exclude(id__in=usersQuestions)	
+		# if usersQuestions:
+		# 	questions = Question.objects.all().order_by('-date').exclude(id__in=usersQuestions)	
 		serializer = QuestionSerializer(questions, many=True, context={'request':request})
 		ret['popularQuestions'] = serializer.data
 		return JSONResponse(add_user(ret, request))
