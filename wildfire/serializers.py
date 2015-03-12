@@ -126,9 +126,12 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 		if categories:
 			for category in categories:
+				print("Creating category " + category)
 				catModel = Category.objects.create(category=category)
 				catModel.save()
-				catModel.question.add(instance)
+				print("Saving category")
+				catModel.question.add(question)
+				print("Added to the question")
 		return question
 
 
@@ -144,10 +147,10 @@ class QuestionSerializer(serializers.ModelSerializer):
 		instance.option5 = validated_data.get('option5', instance.option5)
 		instance.save()
 
-		for category in categories:
-			catModel = Category.objects.create(category=category)
-			catModel.save()
-			catModel.question.add(instance)
+		# for category in categories:
+		# 	catModel = Category.objects.create(category=category)
+		# 	catModel.save()
+		# 	catModel.question.add(instance)
 
 		return instance
 		
