@@ -225,7 +225,6 @@ def answer_create(request):
 			answer = serializer.save()
 			questionSerializer = QuestionSerializer(answer.question, context={'request':request})
 			target_from_answer(answer)
-			TargetedQuestion.objects.filter(user=answer.user, question=answer.question).delete()
 			return JSONResponse(add_user(questionSerializer.data, request))
 		return JSONResponse(serializer.errors, status=400)
 

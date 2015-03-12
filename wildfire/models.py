@@ -90,10 +90,3 @@ class TargetedQuestion(models.Model):
 
 	class Meta:
 		unique_together = ('user', 'question')
-
-	def save(self, *args, **kwargs):
-		#Don't target a user with a question if they have already answered the question
-		answers = Answer.objects.filter(user=self.user, question = self.question)
-		if answers.count() > 0:
-			return
-		super(TargetedQuestion, self).save(*args, **kwargs)
