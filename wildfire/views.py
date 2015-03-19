@@ -17,7 +17,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.authentication import TokenAuthentication
 
-from wildfire.models import UserProfile, Question, Answer, Connected, TargetedQuestion
+from wildfire.models import UserProfile, Question, Answer, Connected, TargetedQuestion, Category
 from wildfire.serializers import UserSerializer, UserProfileSerializer, QuestionSerializer
 from wildfire.serializers import AnswerSerializer, StatsSerializer, ConnectionSerializer
 from wildfire.permissions import isOwnerOrReadOnly
@@ -302,3 +302,17 @@ def connect(request):
 		return JSONResponse(add_user(serializer.data, request))
 	return JSONResponse(serializer.errors, status=400)
 
+
+@api_view(['GET'])
+@csrf_exempt
+def search(request):
+	search_term = request.GET.get('q', None)
+	if search_term:
+		questions_text = Question.objects.filter(text__icontains=search_term).distinct('id') 
+		categories_text = Category.objects.filter(category__icontains=search_term)
+		questions_cat = Question.objects.filter(categories__in=categories_text).distinct('id')
+		question_return_set = questions_text | questions_cat
+		print("Search return " + str(question_return_set.count()) + " results")
+		serializer = QuestionSerializer(question_return_set, many=True, context={'request':request})
+		return JSONResponse(add_user(serializer.data, request))
+	return JSONResponse(serializer.errors, status=400)

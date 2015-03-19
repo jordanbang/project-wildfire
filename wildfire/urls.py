@@ -25,4 +25,5 @@ urlpatterns = [
 
 	url(r'^profile/(?P<pk>[0-9]+)/$', views.profile),
 	url(r'^connect/$', views.connect),
+	url(r'^search/$', views.search),
 ]
