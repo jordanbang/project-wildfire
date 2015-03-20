@@ -308,11 +308,29 @@ def connect(request):
 def search(request):
 	search_term = request.GET.get('q', None)
 	if search_term:
-		questions_text = Question.objects.filter(text__icontains=search_term).distinct('id') 
+		ret = dict()
+
+		users_name = User.objects.filter(username__contains=search_term)
+		user_first = User.objects.filter(first_name__contains=search_term)
+		user_last = User.objects.filter(last_name__contains=search_term)
+		user = (users_name | user_first| user_last).distinct('id')
+		user_profiles = UserProfile.objects.filter(id__in=user)
+		print("Search return " + str(user_profiles.count()) +  " users")
+
+
+		questions_text = Question.objects.filter(text__icontains=search_term)
 		categories_text = Category.objects.filter(category__icontains=search_term)
-		questions_cat = Question.objects.filter(categories__in=categories_text).distinct('id')
-		question_return_set = questions_text | questions_cat
-		print("Search return " + str(question_return_set.count()) + " results")
+		questions_cat = Question.objects.filter(categories__in=categories_text)
+		question_asker = Question.objects.filter(asker__in=user_profiles)
+		question_return_set = (questions_text | questions_cat | question_asker).distinct('id')
+
+		print("Search return " + str(question_return_set.count()) + " questions")
+		
+		serializer = UserProfileSerializer(user_profiles, many=True)
+		ret['users'] = serializer.data
 		serializer = QuestionSerializer(question_return_set, many=True, context={'request':request})
-		return JSONResponse(add_user(serializer.data, request))
+		ret['questions'] = serializer.data
+		
+
+		return JSONResponse(add_user(ret, request))
 	return JSONResponse(serializer.errors, status=400)
