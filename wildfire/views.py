@@ -310,9 +310,9 @@ def search(request):
 	if search_term:
 		ret = dict()
 
-		users_name = User.objects.filter(username__contains=search_term)
-		user_first = User.objects.filter(first_name__contains=search_term)
-		user_last = User.objects.filter(last_name__contains=search_term)
+		users_name = User.objects.filter(username__icontains=search_term)
+		user_first = User.objects.filter(first_name__icontains=search_term)
+		user_last = User.objects.filter(last_name__icontains=search_term)
 		user = (users_name | user_first| user_last).distinct('id')
 		user_profiles = UserProfile.objects.filter(id__in=user)
 		print("Search return " + str(user_profiles.count()) +  " users")
