@@ -314,7 +314,7 @@ def search(request):
 		user_first = User.objects.filter(first_name__icontains=search_term)
 		user_last = User.objects.filter(last_name__icontains=search_term)
 		user = (users_name | user_first| user_last).distinct('id')
-		user_profiles = UserProfile.objects.filter(id__in=user)
+		user_profiles = UserProfile.objects.filter(user__in=user)
 		print("Search return " + str(user_profiles.count()) +  " users")
 
 
