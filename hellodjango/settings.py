@@ -124,5 +124,6 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
         # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
-    )
+    ),
+    'NON_FIELD_ERRORS_KEY': 'Error',
 }

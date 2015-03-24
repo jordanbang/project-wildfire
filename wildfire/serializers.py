@@ -75,6 +75,31 @@ class QuestionSerializer(serializers.ModelSerializer):
 			'option1', 'option2', 'option3', 'option4', 'option5', 'answers')
 		read_only_fields = ('id', 'date')
 
+	def validate(self, data):
+		options = []
+		options.append(data['option1'])
+		options.append(data['option2'])
+		options.append(data['option3'])
+		options.append(data['option4'])
+		options.append(data['option5'])
+
+		other = []
+
+		has_duplicates = False
+		for i in options:
+			if has_duplicates:
+				break
+			if i in other:
+				has_duplicates = True
+			else:
+				other.append(i)
+
+		if has_duplicates:
+			print("This question has duplicates: " + str(has_duplicates))
+			raise serializers.ValidationError("Options must be unique")
+		return data
+
+
 	def to_representation(self, obj):
 		rep = super(serializers.ModelSerializer, self).to_representation(obj)
 		rep['options'] = to_array(rep)
@@ -153,6 +178,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 		# 	catModel.question.add(instance)
 
 		return instance
+
 		
 class StatsSerializer(serializers.BaseSerializer):
 	def to_representation(self, obj):
