@@ -223,6 +223,13 @@ class StatsSerializer(serializers.BaseSerializer):
 					'option4': answers.filter(answer = 3,user__gender = "F").count(),
 					'option5': answers.filter(answer = 4,user__gender = "F").count()
 				},
+				'registered':{
+					'option1': answers.filter(answer=0).exclude(user=0).count(),
+					'option2': answers.filter(answer=1).exclude(user=0).count(),
+					'option3': answers.filter(answer=2).exclude(user=0).count(),
+					'option4': answers.filter(answer=3).exclude(user=0).count(),
+					'option5': answers.filter(answer=4).exclude(user=0).count()
+				},
 				'region':{
 					'regionTotal': regionStats,
 					'option1': region1,
