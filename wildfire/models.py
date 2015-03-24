@@ -18,9 +18,9 @@ QUESTION_TYPE_CHOICE = (('MC', 'Multiple Choice'),
 
 class UserProfile(models.Model):
 	user = models.OneToOneField(User, related_name="profile", unique=True)
-	age = models.IntegerField(default=20)
+	age = models.IntegerField(default=21)
 	gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
-	region = models.CharField(max_length = 20)
+	region = models.CharField(max_length = 20, default="Toronto")
 	joinDate = models.DateTimeField(auto_now=True)
 	avatarUrl = models.URLField(blank=True, max_length = 500)
 

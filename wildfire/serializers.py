@@ -39,6 +39,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
 	first_name = serializers.CharField(source='user.first_name')
 	last_name = serializers.CharField(source='user.last_name')
 	password = serializers.CharField(source='user.password', write_only=True, required=False)
+	age = serializers.IntegerField(required=False)
+	region = serializers.CharField(required=False)
 	id = serializers.IntegerField()
 
 	class Meta:
