@@ -243,6 +243,43 @@ class StatsSerializer(serializers.BaseSerializer):
 					'option3': region3,
 					'option4': region4,
 					'option5': region5
+				},
+				'age':{
+					'kids':{
+						'option1':answers.filter(answer = 0,user__age__lte=12).count(),
+						'option2':answers.filter(answer = 1,user__age__lte=12).count(),
+						'option3':answers.filter(answer = 2,user__age__lte=12).count(),
+						'option4':answers.filter(answer = 3,user__age__lte=12).count(),
+						'option5':answers.filter(answer = 4,user__age__lte=12).count()
+					},
+					'teens':{
+						'option1':answers.filter(answer = 0,user__age__lte=19,user__age__gte=13).count(),
+						'option2':answers.filter(answer = 1,user__age__lte=19,user__age__gte=13).count(),
+						'option3':answers.filter(answer = 2,user__age__lte=19,user__age__gte=13).count(),
+						'option4':answers.filter(answer = 3,user__age__lte=19,user__age__gte=13).count(),
+						'option5':answers.filter(answer = 4,user__age__lte=19,user__age__gte=13).count()
+					},
+					'twenties':{
+						'option1':answers.filter(answer = 0,user__age__lte=29,user__age__gte=20).count(),
+						'option2':answers.filter(answer = 1,user__age__lte=29,user__age__gte=20).count(),
+						'option3':answers.filter(answer = 2,user__age__lte=29,user__age__gte=20).count(),
+						'option4':answers.filter(answer = 3,user__age__lte=29,user__age__gte=20).count(),
+						'option5':answers.filter(answer = 4,user__age__lte=29,user__age__gte=20).count()
+					},
+					'thirties':{
+						'option1':answers.filter(answer = 0,user__age__lte=39,user__age__gte=30).count(),
+						'option2':answers.filter(answer = 1,user__age__lte=39,user__age__gte=30).count(),
+						'option3':answers.filter(answer = 2,user__age__lte=39,user__age__gte=30).count(),
+						'option4':answers.filter(answer = 3,user__age__lte=39,user__age__gte=30).count(),
+						'option5':answers.filter(answer = 4,user__age__lte=39,user__age__gte=30).count()
+					},
+					'older':{
+						'option1':answers.filter(answer = 0,user__age__gte=40).count(),
+						'option2':answers.filter(answer = 1,user__age__gte=40).count(),
+						'option3':answers.filter(answer = 2,user__age__gte=40).count(),
+						'option4':answers.filter(answer = 3,user__age__gte=40).count(),
+						'option5':answers.filter(answer = 4,user__age__gte=40).count()
+					}
 				}
 			}
 
