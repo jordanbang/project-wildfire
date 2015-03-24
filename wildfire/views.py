@@ -289,6 +289,7 @@ def profile(request, pk):
 		ret['numQuestionsAsked'] = Question.objects.filter(asker=user).count()
 		ret['numQuestionsAnswered'] = Answer.objects.filter(user=user).count()
 		ret['numConnections'] = Connected.objects.filter(user1=user).count()
+		ret['answers'] = Answer.objects.filter(user=user).count()
 
 		return JSONResponse(add_user(ret, request))
 
