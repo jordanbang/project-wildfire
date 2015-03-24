@@ -277,6 +277,8 @@ def profile(request, pk):
 
 		users_questions = Question.objects.filter(asker=user)
 		questions_data = QuestionSerializer(users_questions, many=True).data
+		users_answers = Answer.objects.filter(user=user)
+		answers_data = AnswerSerializer(users_answers, many=True).data		
 
 		connections1 = Connected.objects.filter(user1=user).values_list('user2', flat=True) 
 		connections_as_user = UserProfile.objects.filter(id__in=connections1)
@@ -289,8 +291,7 @@ def profile(request, pk):
 		ret['numQuestionsAsked'] = Question.objects.filter(asker=user).count()
 		ret['numQuestionsAnswered'] = Answer.objects.filter(user=user).count()
 		ret['numConnections'] = Connected.objects.filter(user1=user).count()
-		ret['answers'] = Answer.objects.filter(user=user)
-
+		ret['answers'] = answers_data
 		return JSONResponse(add_user(ret, request))
 
 @api_view(['POST'])
