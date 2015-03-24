@@ -79,11 +79,11 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 	def validate(self, data):
 		options = []
-		options.append(data['option1'])
-		options.append(data['option2'])
-		options.append(data['option3'])
-		options.append(data['option4'])
-		options.append(data['option5'])
+		options.append(data['option1'].lower())
+		options.append(data['option2'].lower())
+		options.append(data['option3'].lower())
+		options.append(data['option4'].lower())
+		options.append(data['option5'].lower())
 
 		other = []
 
@@ -91,7 +91,9 @@ class QuestionSerializer(serializers.ModelSerializer):
 		for i in options:
 			if has_duplicates:
 				break
-			if i in other:
+			elif i is None or i == "":
+				pass
+			elif i in other:
 				has_duplicates = True
 			else:
 				other.append(i)
