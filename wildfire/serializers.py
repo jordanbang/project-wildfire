@@ -112,15 +112,20 @@ class QuestionSerializer(serializers.ModelSerializer):
 		request = self.context.get('request', None)
 		if request and request.user.is_authenticated():
 			rep['isUser'] = True
-			for answer in answers:
-				print("Answer user id: " + str(answer['user']))
-				print("Request user id: " + str(request.user.profile))
-				if answer['user'] == request.user.profile.id:
-					rep['isAnswered'] = True
-					rep['usersAnswer'] = answer
-					break
-				else:
-					rep['isAnswered'] = False
+			answer = Answer.objects.filter(question=rep['id'], user=request.user.profile)
+			if answer is not None and answer.count() > 0:
+				serializer = AnswerSerializer(answer[0]).data
+				rep['usersAnswer'] = serializer
+			
+			# for answer in answers:
+			# 	print("Answer user id: " + str(answer['user']))
+			# 	print("Request user id: " + str(request.user.profile.id))
+			# 	if answer['user'] == request.user.profile.id:
+			# 		rep['isAnswered'] = True
+			# 		rep['usersAnswer'] = answer
+			# 		break
+			# 	else:
+			# 		rep['isAnswered'] = False
 		else:
 			rep['isUser'] = False
 
