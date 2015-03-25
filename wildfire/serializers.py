@@ -130,13 +130,13 @@ class QuestionSerializer(serializers.ModelSerializer):
 			rep['isUser'] = False
 
 		answers = Answer.objects.filter(question=rep['id'])
-		rep['quick'] = {
-			'option1': answers.filter(answer = 0).count(),
-			'option2': answers.filter(answer = 1).count(),
-			'option3': answers.filter(answer = 2).count(),
-			'option4': answers.filter(answer = 3).count(),
-			'option5': answers.filter(answer = 4).count()
-		}
+		#rep['quick'] = {
+			#'option1': answers.filter(answer = 0).count(),
+			#'option2': answers.filter(answer = 1).count(),
+			#'option3': answers.filter(answer = 2).count(),
+			#'option4': answers.filter(answer = 3).count(),
+			#'option5': answers.filter(answer = 4).count()
+		#}
 		return rep
 
 	def to_internal_value(self, data):
