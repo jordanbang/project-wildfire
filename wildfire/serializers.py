@@ -70,11 +70,12 @@ class QuestionSerializer(serializers.ModelSerializer):
 	asker = UserProfileSerializer(many=False)
 	categories = serializers.StringRelatedField(many=True, required=False)
 	answers = AnswerSerializer(many=True, read_only=True)
+	link = serializers.CharField(source='related_link', required=False)
 
 	class Meta:
 		model = Question
 		fields = ('id', 'text', 'questionType', 'date', 'asker', 'categories', 
-			'option1', 'option2', 'option3', 'option4', 'option5', 'answers')
+			'option1', 'option2', 'option3', 'option4', 'option5', 'answers', 'link')
 		read_only_fields = ('id', 'date')
 
 	def validate(self, data):

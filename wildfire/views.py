@@ -23,6 +23,7 @@ from wildfire.serializers import AnswerSerializer, StatsSerializer, ConnectionSe
 from wildfire.permissions import isOwnerOrReadOnly
 
 from wildfire.targeted_question_helper import target_from_answer, target_from_question
+from wildfire.question_helper import get_news_for_question
 
 # Create your views here.
 class JSONResponse(HttpResponse):
@@ -174,6 +175,7 @@ def question_create(request):
 		if serializer.is_valid():
 			new_question = serializer.save()
 			target_from_question(new_question)
+			get_news_for_question(new_question)
 			return JSONResponse(add_user(serializer.data, request))
 		return JSONResponse(serializer.errors, status=400)
 

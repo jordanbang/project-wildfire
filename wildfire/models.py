@@ -40,6 +40,7 @@ class Question(models.Model):
 	text = models.CharField(max_length = 200)
 	questionType = models.CharField(max_length = 2, choices=QUESTION_TYPE_CHOICE)
 	date = models.DateTimeField(auto_now=True)
+	related_link = models.URLField(blank=True, max_length= 500)
 	option1 = models.CharField(max_length = 50, blank=True)
 	option2 = models.CharField(max_length = 50, blank=True)
 	option3 = models.CharField(max_length = 50, blank=True)
