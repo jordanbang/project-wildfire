@@ -46,6 +46,7 @@ class Question(models.Model):
 	option3 = models.CharField(max_length = 50, blank=True)
 	option4 = models.CharField(max_length = 50, blank=True)
 	option5 = models.CharField(max_length = 50, blank=True)
+	replyTo = models.ForeignKey('wildfire.Question', null=True, default=None)
 
 	def __unicode__(self):
 		return self.text

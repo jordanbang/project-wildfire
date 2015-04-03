@@ -338,3 +338,17 @@ def search(request):
 
 		return JSONResponse(add_user(ret, request))
 	return JSONResponse(serializer.errors, status=400)
+
+#/stats endpoints
+@csrf_exempt
+@api_view(['GET'])
+def replies(request, pk):
+	try:
+		question = Question.objects.get(pk=pk)
+	except Question.DoesNotExist:
+		return HttpResponse(status=404)
+
+	if request.method == 'GET':
+		replies = Question.objects.filter(replyTo=pk)
+		serializer = QuestionSerializer(replies, many=True, context={'request':request})
+		return JSONResponse(add_user(serializer.data, request))
