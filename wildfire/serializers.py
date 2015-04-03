@@ -200,7 +200,7 @@ class StatsSerializer(serializers.BaseSerializer):
 				'quick':{
 					'avg': answers.values('answer').aggregate(Avg('answer')).get('answer__avg'),
 					'responses': answers
-				}
+				},
 				'male': answers.filter(user__gender = "M").values('answer').aggregate(Avg('answer')).get('answer__avg'),
 				'female': answers.filter(user__gender = "F").values('answer').aggregate(Avg('answer')).get('answer__avg'),
 				'region': answers.values('user__region').annotate(Avg('answer'))
