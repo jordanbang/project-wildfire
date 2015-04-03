@@ -199,15 +199,15 @@ class StatsSerializer(serializers.BaseSerializer):
 			return{
 				'quick':{
 					'avg': answers.values('answer').aggregate(Avg('answer')).get('answer__avg'),
-					'responses': answers
+					'responses': answers.values('answer')
 				},
 				'male':{
 					'avg': answers.filter(user__gender = "M").values('answer').aggregate(Avg('answer')).get('answer__avg'),
-					'responses': answers.filter(user__gender = "M")
+					'responses': answers.filter(user__gender = "M").values('answer')
 				},
 				'female':{
 					'avg': answers.filter(user__gender = "F").values('answer').aggregate(Avg('answer')).get('answer__avg'),
-					'responses': answers.filter(user__gender = "F")
+					'responses': answers.filter(user__gender = "F").values('answer')
 				},
 				'region': answers.values('user__region').annotate(Avg('answer'))
 			}
