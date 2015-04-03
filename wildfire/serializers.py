@@ -201,8 +201,14 @@ class StatsSerializer(serializers.BaseSerializer):
 					'avg': answers.values('answer').aggregate(Avg('answer')).get('answer__avg'),
 					'responses': answers
 				},
-				'male': answers.filter(user__gender = "M").values('answer').aggregate(Avg('answer')).get('answer__avg'),
-				'female': answers.filter(user__gender = "F").values('answer').aggregate(Avg('answer')).get('answer__avg'),
+				'male':{
+					'avg': answers.filter(user__gender = "M").values('answer').aggregate(Avg('answer')).get('answer__avg'),
+					'responses': answers.filter(user__gender = "M")
+				},
+				'female':{
+					'avg': answers.filter(user__gender = "F").values('answer').aggregate(Avg('answer')).get('answer__avg'),
+					'responses': answers.filter(user__gender = "F")
+				},
 				'region': answers.values('user__region').annotate(Avg('answer'))
 			}
 		else:
