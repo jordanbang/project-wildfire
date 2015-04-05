@@ -133,10 +133,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 		answers = Answer.objects.filter(question=rep['id'])
 		if rep['questionType'] == 'RG':
-			rep['quick'] = {
-				'avg': answers.values('answer').aggregate(Avg('answer')).get('answer__avg'),
-				'responses': answers.values('answer')
-			}
+			rep['quick'] = answers.values('answer').aggregate(Avg('answer')).get('answer__avg')
 		else:
 			rep['quick'] = {
 				'option1': answers.filter(answer = 0).count(),
