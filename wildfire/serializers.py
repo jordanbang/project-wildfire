@@ -132,13 +132,16 @@ class QuestionSerializer(serializers.ModelSerializer):
 			rep['isUser'] = False
 
 		answers = Answer.objects.filter(question=rep['id'])
-		rep['quick'] = {
-			'option1': answers.filter(answer = 0).count(),
-			'option2': answers.filter(answer = 1).count(),
-			'option3': answers.filter(answer = 2).count(),
-			'option4': answers.filter(answer = 3).count(),
-			'option5': answers.filter(answer = 4).count()
-		}
+		if rep['questionType'] == 'RG':
+			rep['quick'] = answers.values('answer').aggregate(Avg('answer')).get('answer__avg')
+		else:
+			rep['quick'] = {
+				'option1': answers.filter(answer = 0).count(),
+				'option2': answers.filter(answer = 1).count(),
+				'option3': answers.filter(answer = 2).count(),
+				'option4': answers.filter(answer = 3).count(),
+				'option5': answers.filter(answer = 4).count()
+			}
 		return rep
 
 	def to_internal_value(self, data):
@@ -195,6 +198,9 @@ class QuestionSerializer(serializers.ModelSerializer):
 class StatsSerializer(serializers.BaseSerializer):
 	def to_representation(self, obj):
 		answers = Answer.objects.filter(question=obj.pk)
+		request = self.context.get('request', None)
+		connections = Connected.objects.filter(user1=request.user.profile)
+		connectedAnswers = answers.filter(user__in = connections.values('user2'))
 		if obj.questionType == 'RG':
 			return{
 				'quick':{
@@ -225,6 +231,13 @@ class StatsSerializer(serializers.BaseSerializer):
 					'option3': answers.filter(answer = 2).count(),
 					'option4': answers.filter(answer = 3).count(),
 					'option5': answers.filter(answer = 4).count()
+				},
+				'connected':{
+					'option1': connectedAnswers.filter(answer = 0).count(),
+					'option2': connectedAnswers.filter(answer = 1).count(),
+					'option3': connectedAnswers.filter(answer = 2).count(),
+					'option4': connectedAnswers.filter(answer = 3).count(),
+					'option5': connectedAnswers.filter(answer = 4).count()
 				},
 				'male':{
 					'option1': answers.filter(answer = 0,user__gender = "M").count(),

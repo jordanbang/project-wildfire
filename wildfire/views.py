@@ -240,7 +240,7 @@ def stats(request, pk):
 		return HttpResponse(status=404)
 
 	if request.method == 'GET':
-		serializer = StatsSerializer(question)
+		serializer = StatsSerializer(question, context={'request':request})
 		return JSONResponse(add_user(serializer.data, request))
 
 
